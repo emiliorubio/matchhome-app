@@ -1,9 +1,16 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { Heart, MapPin } from "lucide-react";
+
 type PropertyCardProps = {
   title: string;
   location: string;
   price: string;
-  match: string;
+  match: number;
   gradient: string;
+  favorite?: boolean;
+  onFavorite?: () => void;
 };
 
 export function PropertyCard({
@@ -12,34 +19,77 @@ export function PropertyCard({
   price,
   match,
   gradient,
+  favorite,
+  onFavorite,
 }: PropertyCardProps) {
+
   return (
-    <div className="rounded-3xl bg-zinc-900 p-5 transition hover:-translate-y-2 hover:shadow-2xl">
-      
+    <motion.div
+      whileHover={{
+        y: -8,
+        scale: 1.02,
+      }}
+      transition={{
+        duration: 0.2,
+      }}
+      className="group relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-900 p-5"
+    >
+
+      {/* Favorite */}
+      <button
+        onClick={onFavorite}
+        className="absolute right-4 top-4 z-20 rounded-full bg-black/40 p-2 backdrop-blur-xl transition hover:scale-110"
+      >
+        <Heart
+          className={`h-5 w-5 transition ${
+            favorite
+              ? "fill-red-500 text-red-500"
+              : "text-white"
+          }`}
+        />
+      </button>
+
+      {/* Gradient */}
       <div
         className={`h-48 rounded-2xl bg-gradient-to-br ${gradient}`}
       />
 
-      <h3 className="mt-4 text-xl font-bold">
-        {title}
-      </h3>
+      {/* Content */}
+      <div className="mt-5">
 
-      <p className="mt-2 text-zinc-400">
-        {location}
-      </p>
+        <h3 className="text-2xl font-bold">
+          {title}
+        </h3>
 
-      <div className="mt-4 flex items-center justify-between">
-        
-        <span className="text-lg font-semibold">
-          {price}
-        </span>
+        <div className="mt-2 flex items-center gap-2 text-zinc-400">
 
-        <span className="rounded-full bg-green-500/20 px-3 py-1 text-sm text-green-400">
-          {match} match
-        </span>
+          <MapPin className="h-4 w-4" />
+
+          <span>
+            {location}
+          </span>
+
+        </div>
+
+        <div className="mt-6 flex items-center justify-between">
+
+          <span className="text-xl font-semibold">
+            {price}
+          </span>
+
+          <span className="rounded-full bg-green-500/20 px-3 py-1 text-sm text-green-400">
+            {match}% match
+          </span>
+
+        </div>
 
       </div>
 
-    </div>
+      {/* Glow */}
+      <div className="absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100">
+        <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-500/5 to-cyan-500/5" />
+      </div>
+
+    </motion.div>
   );
 }

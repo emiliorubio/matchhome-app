@@ -14,7 +14,10 @@ import { questions } from "@/src/data/questions";
 export default function Home() {
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
+
   const [answers, setAnswers] = useState<string[]>([]);
+
+  const [favorites, setFavorites] = useState<number[]>([]);
 
   const isFinished = currentQuestion >= questions.length;
 
@@ -50,19 +53,33 @@ export default function Home() {
 
   }, [answers]);
 
+  const toggleFavorite = (id: number) => {
+
+    setFavorites((prev) => {
+
+      if (prev.includes(id)) {
+        return prev.filter((fav) => fav !== id);
+      }
+
+      return [...prev, id];
+
+    });
+
+  };
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-white">
 
       <Navbar />
 
-      {/* Glow Effects */}
+      {/* Glow */}
       <div className="absolute left-[-200px] top-[-200px] h-[500px] w-[500px] rounded-full bg-fuchsia-500/20 blur-3xl" />
 
       <div className="absolute bottom-[-200px] right-[-200px] h-[500px] w-[500px] rounded-full bg-cyan-500/20 blur-3xl" />
 
-      {/* Hero */}
       <section className="relative flex min-h-screen flex-col items-center justify-center px-6 py-20 text-center">
 
+        {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -94,7 +111,7 @@ export default function Home() {
           MatchHome conecta personas con departamentos ideales usando una experiencia rápida, visual e inteligente.
         </motion.p>
 
-        {/* Featured Properties */}
+        {/* Featured */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -112,6 +129,8 @@ export default function Home() {
                 price={`$${property.price.toLocaleString("es-CL")}`}
                 match={property.match}
                 gradient={property.gradient}
+                favorite={favorites.includes(property.id)}
+                onFavorite={() => toggleFavorite(property.id)}
               />
             ))}
 
@@ -233,6 +252,8 @@ export default function Home() {
                     price={`$${property.price.toLocaleString("es-CL")}`}
                     match={property.match}
                     gradient={property.gradient}
+                    favorite={favorites.includes(property.id)}
+                    onFavorite={() => toggleFavorite(property.id)}
                   />
                 ))}
 
