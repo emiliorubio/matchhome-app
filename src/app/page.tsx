@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 
 import { Navbar } from "@/src/components/Navbar";
@@ -16,6 +16,34 @@ export default function Home() {
   const [answers, setAnswers] = useState<string[]>([]);
 
   const isFinished = currentQuestion >= questions.length;
+
+  const matchedProperties = useMemo(() => {
+
+    const budgetAnswer = answers[0];
+    const locationAnswer = answers[1];
+    const petsAnswer = answers[2];
+
+    return properties.filter((property) => {
+
+      const matchesBudget =
+        !budgetAnswer || property.budget === budgetAnswer;
+
+      const matchesLocation =
+        !locationAnswer || property.location === locationAnswer;
+
+      const matchesPets =
+        !petsAnswer ||
+        (petsAnswer === "Sí" ? property.pets : true);
+
+      return (
+        matchesBudget &&
+        matchesLocation &&
+        matchesPets
+      );
+
+    });
+
+  }, [answers]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-black text-white">
@@ -61,23 +89,6 @@ export default function Home() {
           MatchHome conecta personas con departamentos ideales usando una experiencia rápida, visual e inteligente.
         </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="mt-10 flex flex-col gap-4 sm:flex-row"
-        >
-
-          <button className="rounded-2xl bg-white px-8 py-4 font-semibold text-black transition hover:scale-105">
-            Comenzar ahora
-          </button>
-
-          <button className="rounded-2xl border border-white/10 bg-white/5 px-8 py-4 font-semibold backdrop-blur-xl transition hover:bg-white/10">
-            Explorar propiedades
-          </button>
-
-        </motion.div>
-
         {/* Featured Properties */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -93,7 +104,7 @@ export default function Home() {
                 key={property.id}
                 title={property.title}
                 location={property.location}
-                price={property.price}
+                price={`$${property.price.toLocaleString("es-CL")}`}
                 match={property.match}
                 gradient={property.gradient}
               />
@@ -144,7 +155,7 @@ export default function Home() {
 
         )}
 
-        {/* Matching Results */}
+        {/* Results */}
         {isFinished && (
 
           <motion.div
@@ -154,14 +165,14 @@ export default function Home() {
             className="mt-32 flex flex-col items-center"
           >
 
-            <div className="max-w-5xl rounded-[32px] border border-fuchsia-500/20 bg-white/5 p-10 text-center backdrop-blur-xl">
+            <div className="max-w-6xl rounded-[32px] border border-fuchsia-500/20 bg-white/5 p-10 text-center backdrop-blur-xl">
 
               <div className="mb-6 inline-flex rounded-full bg-green-500/20 px-4 py-2 text-sm text-green-400">
                 Matching completado
               </div>
 
               <h2 className="text-5xl font-black leading-tight">
-                Encontramos propiedades compatibles contigo.
+                Encontramos {matchedProperties.length} propiedades compatibles contigo.
               </h2>
 
               <p className="mt-6 text-lg text-zinc-400">
@@ -170,12 +181,12 @@ export default function Home() {
 
               <div className="mt-10 grid gap-6 md:grid-cols-3">
 
-                {properties.map((property) => (
+                {matchedProperties.map((property) => (
                   <PropertyCard
                     key={property.id}
                     title={property.title}
                     location={property.location}
-                    price={property.price}
+                    price={`$${property.price.toLocaleString("es-CL")}`}
                     match={property.match}
                     gradient={property.gradient}
                   />
