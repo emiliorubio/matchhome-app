@@ -1,11 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { Navbar } from "@/src/components/Navbar";
 import { PropertyCard } from "@/src/components/PropertyCard";
 import { QuestionCard } from "@/src/components/QuestionCard";
+import { ProgressBar } from "@/src/components/ProgressBar";
 
 import { properties } from "@/src/data/properties";
 import { questions } from "@/src/data/questions";
@@ -16,6 +17,10 @@ export default function Home() {
   const [answers, setAnswers] = useState<string[]>([]);
 
   const isFinished = currentQuestion >= questions.length;
+
+  const progress = Math.round(
+    (currentQuestion / questions.length) * 100
+  );
 
   const matchedProperties = useMemo(() => {
 
@@ -117,31 +122,62 @@ export default function Home() {
         {/* Onboarding */}
         {!isFinished && (
 
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="mt-32 flex flex-col items-center"
-          >
+          <div className="mt-32 flex w-full flex-col items-center">
 
-            <QuestionCard
-              question={questions[currentQuestion].question}
-              options={questions[currentQuestion].options}
-              onSelect={(option) => {
+            <ProgressBar progress={progress} />
 
-                setAnswers([...answers, option]);
+            <AnimatePresence mode="wait">
 
-                setCurrentQuestion(currentQuestion + 1);
+              <motion.div
+                key={currentQuestion}
+                initial={{
+                  opacity: 0,
+                  x: 60,
+                }}
+                animate={{
+                  opacity: 1,
+                  x: 0,
+                }}
+                exit={{
+                  opacity: 0,
+                  x: -60,
+                }}
+                transition={{
+                  duration: 0.35,
+                }}
+                className="mt-10"
+              >
 
-              }}
-            />
+                <QuestionCard
+                  question={questions[currentQuestion].question}
+                  options={questions[currentQuestion].options}
+                  onSelect={(option) => {
+
+                    setAnswers([...answers, option]);
+
+                    setTimeout(() => {
+                      setCurrentQuestion(currentQuestion + 1);
+                    }, 200);
+
+                  }}
+                />
+
+              </motion.div>
+
+            </AnimatePresence>
 
             <div className="mt-10 flex flex-wrap justify-center gap-3 text-zinc-400">
 
               {answers.map((answer, index) => (
                 <motion.p
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  initial={{
+                    opacity: 0,
+                    scale: 0.8,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                  }}
                   key={index}
                   className="rounded-xl bg-white/5 px-4 py-2"
                 >
@@ -151,7 +187,7 @@ export default function Home() {
 
             </div>
 
-          </motion.div>
+          </div>
 
         )}
 
@@ -159,9 +195,17 @@ export default function Home() {
         {isFinished && (
 
           <motion.div
-            initial={{ opacity: 0, y: 60 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            initial={{
+              opacity: 0,
+              y: 60,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            transition={{
+              duration: 0.8,
+            }}
             className="mt-32 flex flex-col items-center"
           >
 
