@@ -7,6 +7,7 @@ import { Navbar } from "@/src/components/Navbar";
 import { PropertyCard } from "@/src/components/PropertyCard";
 import { QuestionCard } from "@/src/components/QuestionCard";
 import { ProgressBar } from "@/src/components/ProgressBar";
+import { SearchBar } from "@/src/components/SearchBar";
 
 import { properties } from "@/src/data/properties";
 import { questions } from "@/src/data/questions";
@@ -18,6 +19,8 @@ export default function Home() {
   const [answers, setAnswers] = useState<string[]>([]);
 
   const [favorites, setFavorites] = useState<number[]>([]);
+
+  const [search, setSearch] = useState("");
 
   const isFinished = currentQuestion >= questions.length;
 
@@ -34,24 +37,37 @@ export default function Home() {
     return properties.filter((property) => {
 
       const matchesBudget =
-        !budgetAnswer || property.budget === budgetAnswer;
+        !budgetAnswer ||
+        property.budget === budgetAnswer;
 
       const matchesLocation =
-        !locationAnswer || property.location === locationAnswer;
+        !locationAnswer ||
+        property.location === locationAnswer;
 
       const matchesPets =
         !petsAnswer ||
-        (petsAnswer === "Sí" ? property.pets : true);
+        (petsAnswer === "Sí"
+          ? property.pets
+          : true);
+
+      const matchesSearch =
+        property.title
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
+        property.location
+          .toLowerCase()
+          .includes(search.toLowerCase());
 
       return (
         matchesBudget &&
         matchesLocation &&
-        matchesPets
+        matchesPets &&
+        matchesSearch
       );
 
     });
 
-  }, [answers]);
+  }, [answers, search]);
 
   const toggleFavorite = (id: number) => {
 
@@ -111,17 +127,25 @@ export default function Home() {
           MatchHome conecta personas con departamentos ideales usando una experiencia rápida, visual e inteligente.
         </motion.p>
 
+        {/* Search */}
+        <div className="mt-14 w-full flex justify-center">
+          <SearchBar
+            value={search}
+            onChange={setSearch}
+          />
+        </div>
+
         {/* Featured */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.8, duration: 0.8 }}
-          className="mt-20 w-full max-w-5xl rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl"
+          className="mt-12 w-full max-w-5xl rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl"
         >
 
           <div className="grid gap-6 md:grid-cols-3">
 
-            {properties.map((property) => (
+            {matchedProperties.map((property) => (
               <PropertyCard
                 key={property.id}
                 title={property.title}
@@ -135,6 +159,16 @@ export default function Home() {
             ))}
 
           </div>
+
+          {matchedProperties.length === 0 && (
+
+            <div className="py-20 text-center text-zinc-400">
+
+              No encontramos propiedades con esos filtros.
+
+            </div>
+
+          )}
 
         </motion.div>
 
@@ -207,61 +241,6 @@ export default function Home() {
             </div>
 
           </div>
-
-        )}
-
-        {/* Results */}
-        {isFinished && (
-
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: 60,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              duration: 0.8,
-            }}
-            className="mt-32 flex flex-col items-center"
-          >
-
-            <div className="max-w-6xl rounded-[32px] border border-fuchsia-500/20 bg-white/5 p-10 text-center backdrop-blur-xl">
-
-              <div className="mb-6 inline-flex rounded-full bg-green-500/20 px-4 py-2 text-sm text-green-400">
-                Matching completado
-              </div>
-
-              <h2 className="text-5xl font-black leading-tight">
-                Encontramos {matchedProperties.length} propiedades compatibles contigo.
-              </h2>
-
-              <p className="mt-6 text-lg text-zinc-400">
-                Analizamos tus preferencias y encontramos opciones ideales para tu perfil.
-              </p>
-
-              <div className="mt-10 grid gap-6 md:grid-cols-3">
-
-                {matchedProperties.map((property) => (
-                  <PropertyCard
-                    key={property.id}
-                    title={property.title}
-                    location={property.location}
-                    price={`$${property.price.toLocaleString("es-CL")}`}
-                    match={property.match}
-                    gradient={property.gradient}
-                    favorite={favorites.includes(property.id)}
-                    onFavorite={() => toggleFavorite(property.id)}
-                  />
-                ))}
-
-              </div>
-
-            </div>
-
-          </motion.div>
 
         )}
 
