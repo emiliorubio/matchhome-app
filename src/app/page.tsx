@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Navbar } from "@/src/components/Navbar";
@@ -9,10 +10,17 @@ import { QuestionCard } from "@/src/components/QuestionCard";
 import { ProgressBar } from "@/src/components/ProgressBar";
 import { SearchBar } from "@/src/components/SearchBar";
 
-import { properties } from "@/src/data/properties";
 import { questions } from "@/src/data/questions";
 
+import { getProperties } from "@/src/services/properties";
+
+import { Property } from "@/src/types/property";
+
 export default function Home() {
+
+  const [properties, setProperties] = useState<Property[]>([]);
+
+  const [loading, setLoading] = useState(true);
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
 
@@ -22,16 +30,35 @@ export default function Home() {
 
   const [search, setSearch] = useState("");
 
-  const isFinished = currentQuestion >= questions.length;
+  const isFinished =
+    currentQuestion >= questions.length;
 
   const progress = Math.round(
     (currentQuestion / questions.length) * 100
   );
 
+  useEffect(() => {
+
+    async function loadProperties() {
+
+      const data = await getProperties();
+
+      setProperties(data);
+
+      setLoading(false);
+
+    }
+
+    loadProperties();
+
+  }, []);
+
   const matchedProperties = useMemo(() => {
 
     const budgetAnswer = answers[0];
+
     const locationAnswer = answers[1];
+
     const petsAnswer = answers[2];
 
     return properties.filter((property) => {
@@ -54,6 +81,7 @@ export default function Home() {
         property.title
           .toLowerCase()
           .includes(search.toLowerCase()) ||
+
         property.location
           .toLowerCase()
           .includes(search.toLowerCase());
@@ -67,7 +95,7 @@ export default function Home() {
 
     });
 
-  }, [answers, search]);
+  }, [properties, answers, search]);
 
   const toggleFavorite = (id: number) => {
 
@@ -129,13 +157,15 @@ export default function Home() {
 
         {/* Search */}
         <div className="mt-14 w-full flex justify-center">
+
           <SearchBar
             value={search}
             onChange={setSearch}
           />
+
         </div>
 
-        {/* Featured */}
+        {/* Properties */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -143,24 +173,41 @@ export default function Home() {
           className="mt-12 w-full max-w-5xl rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl"
         >
 
-          <div className="grid gap-6 md:grid-cols-3">
+          {loading ? (
 
-            {matchedProperties.map((property) => (
-              <PropertyCard
-                key={property.id}
-                title={property.title}
-                location={property.location}
-                price={`$${property.price.toLocaleString("es-CL")}`}
-                match={property.match}
-                gradient={property.gradient}
-                favorite={favorites.includes(property.id)}
-                onFavorite={() => toggleFavorite(property.id)}
-              />
-            ))}
+            <div className="py-20 text-zinc-400">
 
-          </div>
+              Cargando propiedades...
 
-          {matchedProperties.length === 0 && (
+            </div>
+
+          ) : (
+
+            <div className="grid gap-6 md:grid-cols-3">
+
+              {matchedProperties.map((property) => (
+
+                <PropertyCard
+                  key={property.id}
+                  title={property.title}
+                  location={property.location}
+                  price={`$${property.price.toLocaleString("es-CL")}`}
+                  match={property.match}
+                  gradient={property.gradient}
+                  favorite={favorites.includes(property.id)}
+                  onFavorite={() =>
+                    toggleFavorite(property.id)
+                  }
+                />
+
+              ))}
+
+            </div>
+
+          )}
+
+          {!loading &&
+            matchedProperties.length === 0 && (
 
             <div className="py-20 text-center text-zinc-400">
 
@@ -202,14 +249,25 @@ export default function Home() {
               >
 
                 <QuestionCard
-                  question={questions[currentQuestion].question}
-                  options={questions[currentQuestion].options}
+                  question={
+                    questions[currentQuestion].question
+                  }
+                  options={
+                    questions[currentQuestion].options
+                  }
                   onSelect={(option) => {
 
-                    setAnswers([...answers, option]);
+                    setAnswers([
+                      ...answers,
+                      option,
+                    ]);
 
                     setTimeout(() => {
-                      setCurrentQuestion(currentQuestion + 1);
+
+                      setCurrentQuestion(
+                        currentQuestion + 1
+                      );
+
                     }, 200);
 
                   }}
@@ -222,6 +280,7 @@ export default function Home() {
             <div className="mt-10 flex flex-wrap justify-center gap-3 text-zinc-400">
 
               {answers.map((answer, index) => (
+
                 <motion.p
                   initial={{
                     opacity: 0,
@@ -236,6 +295,7 @@ export default function Home() {
                 >
                   {answer}
                 </motion.p>
+
               ))}
 
             </div>
