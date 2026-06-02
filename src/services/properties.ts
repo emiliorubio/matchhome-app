@@ -1,21 +1,16 @@
 import { supabase } from "@/src/lib/supabase";
 
-import { Property } from "@/src/types/property";
-
-export async function getProperties(): Promise<Property[]> {
-
+export async function getProperties() {
   const { data, error } = await supabase
     .from("properties")
     .select("*");
 
+  console.log("PROPERTIES:", data);
+  console.log("ERROR:", error);
+
   if (error) {
-
-    console.error(error);
-
     return [];
-
   }
 
-  return data as Property[];
-
+  return data ?? [];
 }
