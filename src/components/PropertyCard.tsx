@@ -91,40 +91,40 @@ export function PropertyCard({
   const modal =
     showModal &&
     createPortal(
-      <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 px-4 py-6">
-        <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[28px] border border-white/10 bg-zinc-950 p-6 text-white shadow-2xl">
+      <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/90 px-4 py-8">
+        <div className="w-full max-w-md rounded-[28px] border border-cyan-400/30 bg-zinc-950 p-6 text-white shadow-2xl shadow-cyan-500/20">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm uppercase tracking-[0.25em] text-cyan-400">
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-400">
                 Preevaluación
               </p>
 
-              <h2 className="mt-2 text-2xl font-black">
+              <h2 className="mt-3 text-2xl font-black leading-tight">
                 Datos para agendar visita
               </h2>
+
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+                Las visitas se coordinan después de una preevaluación básica.
+              </p>
             </div>
 
             <button
               type="button"
               onClick={() => setShowModal(false)}
-              className="rounded-full bg-white/10 p-2 transition hover:bg-white/20"
+              className="shrink-0 rounded-full bg-white/10 p-2 transition hover:bg-white/20"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          <p className="mt-4 text-sm text-zinc-400">
-            Las visitas se coordinan después de una preevaluación básica.
-          </p>
-
-          <form onSubmit={handleLeadSubmit} className="mt-5 grid gap-3">
+          <form onSubmit={handleLeadSubmit} className="mt-6 grid gap-3">
             <input
               value={leadForm.name}
               onChange={(event) =>
                 setLeadForm({ ...leadForm, name: event.target.value })
               }
               placeholder="Nombre completo"
-              className="w-full rounded-2xl border border-white/10 bg-black px-5 py-4 text-white outline-none focus:border-cyan-400"
+              className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-5 py-4 text-white placeholder:text-zinc-500 outline-none focus:border-cyan-400"
             />
 
             <input
@@ -133,7 +133,7 @@ export function PropertyCard({
                 setLeadForm({ ...leadForm, phone: event.target.value })
               }
               placeholder="Teléfono / WhatsApp"
-              className="w-full rounded-2xl border border-white/10 bg-black px-5 py-4 text-white outline-none focus:border-cyan-400"
+              className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-5 py-4 text-white placeholder:text-zinc-500 outline-none focus:border-cyan-400"
             />
 
             <input
@@ -142,7 +142,7 @@ export function PropertyCard({
                 setLeadForm({ ...leadForm, income: event.target.value })
               }
               placeholder="Renta líquida aproximada"
-              className="w-full rounded-2xl border border-white/10 bg-black px-5 py-4 text-white outline-none focus:border-cyan-400"
+              className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-5 py-4 text-white placeholder:text-zinc-500 outline-none focus:border-cyan-400"
             />
 
             <textarea
@@ -152,15 +152,15 @@ export function PropertyCard({
               }
               placeholder="Mensaje adicional"
               rows={3}
-              className="w-full resize-none rounded-2xl border border-white/10 bg-black px-5 py-4 text-white outline-none focus:border-cyan-400"
+              className="w-full resize-none rounded-2xl border border-white/10 bg-zinc-900 px-5 py-4 text-white placeholder:text-zinc-500 outline-none focus:border-cyan-400"
             />
 
-            <div className="rounded-2xl bg-white/5 p-4 text-xs text-zinc-300">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-zinc-300">
               <p className="font-semibold text-white">
                 Requisitos habituales:
               </p>
 
-              <p className="mt-2">
+              <p className="mt-2 leading-relaxed">
                 Renta compatible, documentación vigente, cédula vigente y
                 evaluación comercial.
               </p>
@@ -168,7 +168,7 @@ export function PropertyCard({
 
             <button
               disabled={savingLead}
-              className="rounded-2xl bg-white px-6 py-4 font-bold text-black transition hover:scale-105 disabled:opacity-50"
+              className="rounded-2xl bg-white px-6 py-4 font-bold text-black transition hover:scale-[1.02] disabled:opacity-50"
             >
               {savingLead
                 ? "Guardando solicitud..."
