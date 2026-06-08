@@ -1,25 +1,65 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 
-import { getProperties } from "@/src/services/properties";
+import {
+  createProperty,
+  getProperties,
+  NewProperty,
+} from "@/src/services/properties";
 import { Property } from "@/src/types/property";
+
+const initialForm: NewProperty = {
+  title: "",
+  location: "",
+  price: 0,
+  match: 90,
+  gradient: "from-fuchsia-500 to-cyan-500",
+  budget: "Hasta $300.000",
+  pets: false,
+  parking: false,
+};
 
 export default function AdminPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const [form, setForm] = useState<NewProperty>(initialForm);
+
+  async function loadProperties() {
+    const data = await getProperties();
+
+    setProperties(data);
+    setLoading(false);
+  }
 
   useEffect(() => {
-    async function loadProperties() {
-      const data = await getProperties();
-
-      setProperties(data);
-      setLoading(false);
-    }
-
     loadProperties();
   }, []);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!form.title || !form.location || !form.price) {
+      alert("Completa título, comuna y precio.");
+      return;
+    }
+
+    setSaving(true);
+
+    const createdProperty = await createProperty(form);
+
+    if (createdProperty) {
+      setProperties((prev) => [createdProperty, ...prev]);
+      setForm(initialForm);
+    } else {
+      alert("No se pudo crear la propiedad.");
+    }
+
+    setSaving(false);
+  }
 
   return (
     <main className="min-h-screen bg-black px-6 py-10 text-white">
@@ -35,7 +75,7 @@ export default function AdminPage() {
             </h1>
 
             <p className="mt-3 max-w-2xl text-zinc-400">
-              Aquí podrás administrar las propiedades disponibles en la plataforma.
+              Administra las propiedades disponibles en la plataforma.
             </p>
           </div>
 
@@ -85,28 +125,140 @@ export default function AdminPage() {
         </section>
 
         <section className="mt-10 rounded-[32px] border border-white/10 bg-white/5 p-6">
-          <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-2xl font-bold">
-                Listado de propiedades
-              </h2>
+          <h2 className="text-2xl font-bold">Agregar propiedad</h2>
 
-              <p className="mt-1 text-sm text-zinc-400">
-                Datos cargados desde Supabase.
-              </p>
-            </div>
+          <p className="mt-1 text-sm text-zinc-400">
+            Esta propiedad se guardará directamente en Supabase.
+          </p>
 
-            <button className="rounded-2xl bg-white px-6 py-3 font-semibold text-black transition hover:scale-105">
-              Agregar propiedad
+          <form
+            onSubmit={handleSubmit}
+            className="mt-6 grid gap-4 md:grid-cols-2"
+          >
+            <input
+              value={form.title}
+              onChange={(event) =>
+                setForm({ ...form, title: event.target.value })
+              }
+              placeholder="Título"
+              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+            />
+
+            <input
+              value={form.location}
+              onChange={(event) =>
+                setForm({ ...form, location: event.target.value })
+              }
+              placeholder="Comuna"
+              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+            />
+
+            <input
+              value={form.price || ""}
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  price: Number(event.target.value),
+                })
+              }
+              type="number"
+              placeholder="Precio"
+              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+            />
+
+            <input
+              value={form.match}
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  match: Number(event.target.value),
+                })
+              }
+              type="number"
+              min={0}
+              max={100}
+              placeholder="Match"
+              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+            />
+
+            <select
+              value={form.budget}
+              onChange={(event) =>
+                setForm({ ...form, budget: event.target.value })
+              }
+              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+            >
+              <option>Hasta $300.000</option>
+              <option>$300.000 - $500.000</option>
+              <option>$500.000 - $800.000</option>
+              <option>$800.000+</option>
+            </select>
+
+            <select
+              value={form.gradient}
+              onChange={(event) =>
+                setForm({ ...form, gradient: event.target.value })
+              }
+              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+            >
+              <option value="from-fuchsia-500 to-cyan-500">
+                Fucsia / Cyan
+              </option>
+              <option value="from-cyan-500 to-blue-500">
+                Cyan / Azul
+              </option>
+              <option value="from-orange-500 to-pink-500">
+                Naranjo / Rosado
+              </option>
+              <option value="from-green-500 to-emerald-500">
+                Verde
+              </option>
+            </select>
+
+            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/40 px-5 py-4">
+              <input
+                type="checkbox"
+                checked={form.parking}
+                onChange={(event) =>
+                  setForm({ ...form, parking: event.target.checked })
+                }
+              />
+              Tiene estacionamiento
+            </label>
+
+            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/40 px-5 py-4">
+              <input
+                type="checkbox"
+                checked={form.pets}
+                onChange={(event) =>
+                  setForm({ ...form, pets: event.target.checked })
+                }
+              />
+              Acepta mascotas
+            </label>
+
+            <button
+              disabled={saving}
+              className="rounded-2xl bg-white px-6 py-4 font-semibold text-black transition hover:scale-105 disabled:opacity-50 md:col-span-2"
+            >
+              {saving ? "Guardando..." : "Guardar propiedad"}
             </button>
-          </div>
+          </form>
+        </section>
+
+        <section className="mt-10 rounded-[32px] border border-white/10 bg-white/5 p-6">
+          <h2 className="text-2xl font-bold">Listado de propiedades</h2>
+
+          <p className="mt-1 text-sm text-zinc-400">
+            Datos cargados desde Supabase.
+          </p>
 
           {loading ? (
             <div className="py-16 text-center text-zinc-400">
               Cargando propiedades...
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="mt-6 overflow-x-auto">
               <table className="w-full min-w-[900px] border-separate border-spacing-y-3 text-left">
                 <thead>
                   <tr className="text-sm text-zinc-500">
