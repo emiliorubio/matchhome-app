@@ -16,4 +16,12 @@ export type Property = {
   pets: boolean;
 
   parking: boolean;
+
+  typology: string | null;
+
+  metro: string | null;
+
+  address: string | null;
+
+  project: string | null;
 };

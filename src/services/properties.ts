@@ -10,6 +10,10 @@ export type NewProperty = {
   budget: string;
   pets: boolean;
   parking: boolean;
+  typology: string;
+  metro: string;
+  address: string;
+  project: string;
 };
 
 export async function getProperties(): Promise<Property[]> {
@@ -34,10 +38,8 @@ export async function createProperty(property: NewProperty) {
     .single();
 
   if (error) {
-  console.log("ERROR COMPLETO:", JSON.stringify(error));
-  console.error(error);
-
-  return null;
+    console.error("Error creating property:", error);
+    return null;
   }
 
   return data as Property;

@@ -19,6 +19,10 @@ const initialForm: NewProperty = {
   budget: "Hasta $300.000",
   pets: false,
   parking: false,
+  typology: "",
+  metro: "",
+  address: "",
+  project: "",
 };
 
 export default function AdminPage() {
@@ -63,7 +67,7 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-black px-6 py-10 text-white">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-6 border-b border-white/10 pb-8 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
@@ -75,7 +79,7 @@ export default function AdminPage() {
             </h1>
 
             <p className="mt-3 max-w-2xl text-zinc-400">
-              Administra las propiedades disponibles en la plataforma.
+              Administra propiedades, datos comerciales y atributos que luego usaremos para importar desde Excel.
             </p>
           </div>
 
@@ -125,7 +129,9 @@ export default function AdminPage() {
         </section>
 
         <section className="mt-10 rounded-[32px] border border-white/10 bg-white/5 p-6">
-          <h2 className="text-2xl font-bold">Agregar propiedad</h2>
+          <h2 className="text-2xl font-bold">
+            Agregar propiedad
+          </h2>
 
           <p className="mt-1 text-sm text-zinc-400">
             Esta propiedad se guardará directamente en Supabase.
@@ -140,7 +146,16 @@ export default function AdminPage() {
               onChange={(event) =>
                 setForm({ ...form, title: event.target.value })
               }
-              placeholder="Título"
+              placeholder="Título comercial"
+              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+            />
+
+            <input
+              value={form.project}
+              onChange={(event) =>
+                setForm({ ...form, project: event.target.value })
+              }
+              placeholder="Proyecto / Edificio"
               className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
             />
 
@@ -154,6 +169,33 @@ export default function AdminPage() {
             />
 
             <input
+              value={form.address}
+              onChange={(event) =>
+                setForm({ ...form, address: event.target.value })
+              }
+              placeholder="Dirección"
+              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+            />
+
+            <input
+              value={form.typology}
+              onChange={(event) =>
+                setForm({ ...form, typology: event.target.value })
+              }
+              placeholder="Tipología, ejemplo: 1D1B"
+              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+            />
+
+            <input
+              value={form.metro}
+              onChange={(event) =>
+                setForm({ ...form, metro: event.target.value })
+              }
+              placeholder="Metro cercano"
+              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+            />
+
+            <input
               value={form.price || ""}
               onChange={(event) =>
                 setForm({
@@ -162,7 +204,7 @@ export default function AdminPage() {
                 })
               }
               type="number"
-              placeholder="Precio"
+              placeholder="Precio arriendo"
               className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
             />
 
@@ -247,7 +289,9 @@ export default function AdminPage() {
         </section>
 
         <section className="mt-10 rounded-[32px] border border-white/10 bg-white/5 p-6">
-          <h2 className="text-2xl font-bold">Listado de propiedades</h2>
+          <h2 className="text-2xl font-bold">
+            Listado de propiedades
+          </h2>
 
           <p className="mt-1 text-sm text-zinc-400">
             Datos cargados desde Supabase.
@@ -259,14 +303,16 @@ export default function AdminPage() {
             </div>
           ) : (
             <div className="mt-6 overflow-x-auto">
-              <table className="w-full min-w-[900px] border-separate border-spacing-y-3 text-left">
+              <table className="w-full min-w-[1100px] border-separate border-spacing-y-3 text-left">
                 <thead>
                   <tr className="text-sm text-zinc-500">
                     <th className="px-4 py-2">Propiedad</th>
+                    <th className="px-4 py-2">Proyecto</th>
                     <th className="px-4 py-2">Comuna</th>
+                    <th className="px-4 py-2">Dirección</th>
+                    <th className="px-4 py-2">Tipo</th>
+                    <th className="px-4 py-2">Metro</th>
                     <th className="px-4 py-2">Precio</th>
-                    <th className="px-4 py-2">Presupuesto</th>
-                    <th className="px-4 py-2">Match</th>
                     <th className="px-4 py-2">Parking</th>
                     <th className="px-4 py-2">Mascotas</th>
                   </tr>
@@ -283,19 +329,27 @@ export default function AdminPage() {
                       </td>
 
                       <td className="px-4 py-4 text-zinc-300">
+                        {property.project || "-"}
+                      </td>
+
+                      <td className="px-4 py-4 text-zinc-300">
                         {property.location}
                       </td>
 
                       <td className="px-4 py-4 text-zinc-300">
-                        ${property.price.toLocaleString("es-CL")}
+                        {property.address || "-"}
                       </td>
 
                       <td className="px-4 py-4 text-zinc-300">
-                        {property.budget}
+                        {property.typology || "-"}
                       </td>
 
-                      <td className="px-4 py-4 text-green-400">
-                        {property.match}%
+                      <td className="px-4 py-4 text-zinc-300">
+                        {property.metro || "-"}
+                      </td>
+
+                      <td className="px-4 py-4 text-zinc-300">
+                        ${property.price.toLocaleString("es-CL")}
                       </td>
 
                       <td className="px-4 py-4">
