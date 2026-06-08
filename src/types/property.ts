@@ -14,4 +14,6 @@ export type Property = {
   budget: string;
 
   pets: boolean;
+
+  parking: boolean;
 };

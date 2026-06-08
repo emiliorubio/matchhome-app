@@ -55,47 +55,48 @@ export default function Home() {
 
   const matchedProperties = useMemo(() => {
 
-    const budgetAnswer = answers[0];
+  const budgetAnswer = answers[0];
 
-    const locationAnswer = answers[1];
+  const locationAnswer = answers[1];
 
-    const petsAnswer = answers[2];
+  const parkingAnswer = answers[2];
 
-    return properties.filter((property) => {
+  return properties.filter((property) => {
 
-      const matchesBudget =
-        !budgetAnswer ||
-        property.budget === budgetAnswer;
+    const matchesBudget =
+      !budgetAnswer ||
+      property.budget === budgetAnswer;
 
-      const matchesLocation =
-        !locationAnswer ||
-        property.location === locationAnswer;
+    const matchesLocation =
+      !locationAnswer ||
+      property.location === locationAnswer;
 
-      const matchesPets =
-        !petsAnswer ||
-        (petsAnswer === "Sí"
-          ? property.pets
-          : true);
+    const matchesParking =
+      !parkingAnswer ||
+      (parkingAnswer === "Sí"
+        ? property.parking
+        : true);
 
-      const matchesSearch =
-        property.title
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
+    const matchesSearch =
+      property.title
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
 
-        property.location
-          .toLowerCase()
-          .includes(search.toLowerCase());
+      property.location
+        .toLowerCase()
+        .includes(search.toLowerCase());
 
-      return (
-        matchesBudget &&
-        matchesLocation &&
-        matchesPets &&
-        matchesSearch
-      );
+    return (
+      matchesBudget &&
+      matchesLocation &&
+      matchesParking &&
+      matchesSearch
+    );
 
-    });
+  });
 
-  }, [properties, answers, search]);
+}, [properties, answers, search]);
+
 
   const toggleFavorite = (id: number) => {
 
