@@ -26,6 +26,16 @@ export function PropertyCard({
   typology,
   metro,
 }: PropertyCardProps) {
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+
+  const message = encodeURIComponent(
+    `Hola, me interesa esta propiedad:\n\n${title}\n${typology || ""}\n${location}\n${price}\n\nQuiero agendar una visita.`
+  );
+
+  const whatsappUrl = whatsappNumber
+    ? `https://wa.me/${whatsappNumber}?text=${message}`
+    : "#";
+
   return (
     <motion.div
       whileHover={{
@@ -80,6 +90,14 @@ export function PropertyCard({
             {match}% match
           </span>
         </div>
+
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          className="mt-5 block rounded-2xl bg-white px-5 py-3 text-center font-semibold text-black transition hover:scale-105"
+        >
+          Agendar visita
+        </a>
       </div>
 
       <div className="absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100">
