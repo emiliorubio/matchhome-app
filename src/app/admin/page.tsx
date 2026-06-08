@@ -1,5 +1,5 @@
 "use client";
-
+import { AdminGuard } from "@/src/components/AdminGuard";
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import * as XLSX from "xlsx";
@@ -271,6 +271,7 @@ export default function AdminPage() {
   }
 
   return (
+    <AdminGuard>
     <main className="min-h-screen bg-black px-6 py-10 text-white">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-6 border-b border-white/10 pb-8 md:flex-row md:items-center md:justify-between">
@@ -633,5 +634,6 @@ export default function AdminPage() {
         </section>
       </div>
     </main>
+    </AdminGuard>
   );
 }
