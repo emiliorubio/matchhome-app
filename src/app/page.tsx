@@ -174,15 +174,17 @@ export default function Home() {
             <div className="grid gap-6 md:grid-cols-3">
               {matchedProperties.map((property) => (
                 <PropertyCard
-                  key={property.id}
-                  title={property.title}
-                  location={property.location}
-                  price={`$${property.price.toLocaleString("es-CL")}`}
-                  match={property.match}
-                  gradient={property.gradient}
-                  favorite={favorites.includes(property.id)}
-                  onFavorite={() => toggleFavorite(property.id)}
-                />
+  key={property.id}
+  title={property.title}
+  location={property.location}
+  price={`$${property.price.toLocaleString("es-CL")}`}
+  match={property.match}
+  gradient={property.gradient}
+  favorite={favorites.includes(property.id)}
+  onFavorite={() => toggleFavorite(property.id)}
+  typology={property.typology}
+  metro={property.metro}
+/>
               ))}
             </div>
           )}
@@ -211,15 +213,17 @@ export default function Home() {
             <div className="mt-6 grid gap-6 md:grid-cols-3">
               {favoriteProperties.map((property) => (
                 <PropertyCard
-                  key={property.id}
-                  title={property.title}
-                  location={property.location}
-                  price={`$${property.price.toLocaleString("es-CL")}`}
-                  match={property.match}
-                  gradient={property.gradient}
-                  favorite={favorites.includes(property.id)}
-                  onFavorite={() => toggleFavorite(property.id)}
-                />
+  key={property.id}
+  title={property.title}
+  location={property.location}
+  price={`$${property.price.toLocaleString("es-CL")}`}
+  match={property.match}
+  gradient={property.gradient}
+  favorite={favorites.includes(property.id)}
+  onFavorite={() => toggleFavorite(property.id)}
+  typology={property.typology}
+  metro={property.metro}
+/>
               ))}
             </div>
           </motion.div>

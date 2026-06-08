@@ -44,3 +44,50 @@ export async function createProperty(property: NewProperty) {
 
   return data as Property;
 }
+
+export async function createPropertiesBulk(properties: NewProperty[]) {
+  const { data, error } = await supabase
+    .from("properties")
+    .insert(properties)
+    .select();
+
+  if (error) {
+    console.error("Error bulk creating properties:", error);
+    return null;
+  }
+
+  return data as Property[];
+}
+
+export async function updateProperty(
+  id: number,
+  property: NewProperty
+) {
+  const { data, error } = await supabase
+    .from("properties")
+    .update(property)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating property:", error);
+    return null;
+  }
+
+  return data as Property;
+}
+
+export async function deleteProperty(id: number) {
+  const { error } = await supabase
+    .from("properties")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting property:", error);
+    return false;
+  }
+
+  return true;
+}

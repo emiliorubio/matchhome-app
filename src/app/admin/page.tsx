@@ -1,14 +1,25 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import * as XLSX from "xlsx";
 
 import {
+  createPropertiesBulk,
   createProperty,
+  deleteProperty,
   getProperties,
   NewProperty,
+  updateProperty,
 } from "@/src/services/properties";
 import { Property } from "@/src/types/property";
+
+const gradients = [
+  "from-fuchsia-500 to-cyan-500",
+  "from-cyan-500 to-blue-500",
+  "from-orange-500 to-pink-500",
+  "from-green-500 to-emerald-500",
+];
 
 const initialForm: NewProperty = {
   title: "",
@@ -17,7 +28,7 @@ const initialForm: NewProperty = {
   match: 90,
   gradient: "from-fuchsia-500 to-cyan-500",
   budget: "Hasta $300.000",
-  pets: false,
+  pets: true,
   parking: false,
   typology: "",
   metro: "",
@@ -25,16 +36,86 @@ const initialForm: NewProperty = {
   project: "",
 };
 
+function getBudgetFromPrice(price: number) {
+  if (price <= 300000) return "Hasta $300.000";
+  if (price <= 500000) return "$300.000 - $500.000";
+  if (price <= 800000) return "$500.000 - $800.000";
+  return "$800.000+";
+}
+
+function parsePrice(value: unknown) {
+  if (typeof value === "number") return value;
+  if (!value) return 0;
+
+  const cleanValue = String(value)
+    .replaceAll("$", "")
+    .replaceAll(".", "")
+    .replaceAll(",", "")
+    .trim();
+
+  const price = Number(cleanValue);
+  return Number.isNaN(price) ? 0 : price;
+}
+
+function hasValue(value: unknown) {
+  return value !== null && value !== undefined && String(value).trim() !== "";
+}
+
+function normalizeExcelRow(row: Record<string, unknown>, index: number) {
+  const tenant = row["Arrendatario"];
+  if (hasValue(tenant)) return null;
+
+  const project = String(row["Proyecto"] ?? "").trim();
+  const address = String(row["Dirección"] ?? "").trim();
+  const typology = String(row["Tipología"] ?? "").trim();
+  const location = String(row["Comuna"] ?? "").trim();
+  const metro = String(row["Metro"] ?? "").trim();
+  const price = parsePrice(row["Arriendo"]);
+  const parkingValue = row["Estac."];
+
+  if (!address || !location || price <= 1000) return null;
+
+  return {
+    title: address,
+    project,
+    address,
+    typology,
+    metro,
+    location,
+    price,
+    match: 90,
+    gradient: gradients[index % gradients.length],
+    budget: getBudgetFromPrice(price),
+    parking: hasValue(parkingValue),
+    pets: true,
+  };
+}
+
 export default function AdminPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
   const [form, setForm] = useState<NewProperty>(initialForm);
+
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const [excelPreview, setExcelPreview] = useState<NewProperty[]>([]);
+  const [excelFileName, setExcelFileName] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [skippedRows, setSkippedRows] = useState(0);
+
+  const averagePrice = useMemo(() => {
+    if (properties.length === 0) return 0;
+
+    return Math.round(
+      properties.reduce((total, property) => total + property.price, 0) /
+        properties.length
+    );
+  }, [properties]);
 
   async function loadProperties() {
     const data = await getProperties();
-
     setProperties(data);
     setLoading(false);
   }
@@ -53,16 +134,140 @@ export default function AdminPage() {
 
     setSaving(true);
 
-    const createdProperty = await createProperty(form);
+    if (editingId) {
+      const updatedProperty = await updateProperty(editingId, form);
 
-    if (createdProperty) {
-      setProperties((prev) => [createdProperty, ...prev]);
-      setForm(initialForm);
+      if (updatedProperty) {
+        setProperties((prev) =>
+          prev.map((property) =>
+            property.id === editingId ? updatedProperty : property
+          )
+        );
+
+        setEditingId(null);
+        setForm(initialForm);
+      } else {
+        alert("No se pudo actualizar la propiedad.");
+      }
     } else {
-      alert("No se pudo crear la propiedad.");
+      const createdProperty = await createProperty(form);
+
+      if (createdProperty) {
+        setProperties((prev) => [createdProperty, ...prev]);
+        setForm(initialForm);
+      } else {
+        alert("No se pudo crear la propiedad.");
+      }
     }
 
     setSaving(false);
+  }
+
+  function handleEditProperty(property: Property) {
+    setEditingId(property.id);
+
+    setForm({
+      title: property.title,
+      location: property.location,
+      price: property.price,
+      match: property.match,
+      gradient: property.gradient,
+      budget: property.budget,
+      pets: property.pets,
+      parking: property.parking,
+      typology: property.typology ?? "",
+      metro: property.metro ?? "",
+      address: property.address ?? "",
+      project: property.project ?? "",
+    });
+
+    window.scrollTo({
+      top: 420,
+      behavior: "smooth",
+    });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(initialForm);
+  }
+
+  async function handleDeleteProperty(id: number) {
+    const confirmed = window.confirm(
+      "¿Seguro que quieres eliminar esta propiedad?"
+    );
+
+    if (!confirmed) return;
+
+    setDeletingId(id);
+
+    const deleted = await deleteProperty(id);
+
+    if (deleted) {
+      setProperties((prev) => prev.filter((property) => property.id !== id));
+
+      if (editingId === id) {
+        cancelEdit();
+      }
+    } else {
+      alert("No se pudo eliminar la propiedad.");
+    }
+
+    setDeletingId(null);
+  }
+
+  async function handleExcelUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    setExcelFileName(file.name);
+
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(buffer);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+
+    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
+      defval: "",
+      range: 1,
+    });
+
+    const normalizedProperties: NewProperty[] = [];
+
+    rows.forEach((row, index) => {
+      const property = normalizeExcelRow(row, index);
+
+      if (property) {
+        normalizedProperties.push(property);
+      }
+    });
+
+    setExcelPreview(normalizedProperties);
+    setSkippedRows(rows.length - normalizedProperties.length);
+  }
+
+  async function handleImportExcel() {
+    if (excelPreview.length === 0) {
+      alert("No hay propiedades válidas para importar.");
+      return;
+    }
+
+    setImporting(true);
+
+    const importedProperties = await createPropertiesBulk(excelPreview);
+
+    if (importedProperties) {
+      setProperties((prev) => [...importedProperties, ...prev]);
+      setExcelPreview([]);
+      setExcelFileName("");
+      setSkippedRows(0);
+      alert(`Se importaron ${importedProperties.length} propiedades.`);
+    } else {
+      alert("No se pudo importar el Excel.");
+    }
+
+    setImporting(false);
   }
 
   return (
@@ -79,7 +284,8 @@ export default function AdminPage() {
             </h1>
 
             <p className="mt-3 max-w-2xl text-zinc-400">
-              Administra propiedades, datos comerciales y atributos que luego usaremos para importar desde Excel.
+              Administra propiedades, carga datos manualmente o importa desde
+              Excel.
             </p>
           </div>
 
@@ -94,9 +300,7 @@ export default function AdminPage() {
         <section className="mt-10 grid gap-6 md:grid-cols-4">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
             <p className="text-sm text-zinc-400">Propiedades</p>
-            <p className="mt-3 text-4xl font-black">
-              {properties.length}
-            </p>
+            <p className="mt-3 text-4xl font-black">{properties.length}</p>
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
@@ -116,25 +320,60 @@ export default function AdminPage() {
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
             <p className="text-sm text-zinc-400">Precio promedio</p>
             <p className="mt-3 text-3xl font-black">
-              {properties.length > 0
-                ? `$${Math.round(
-                    properties.reduce(
-                      (total, property) => total + property.price,
-                      0
-                    ) / properties.length
-                  ).toLocaleString("es-CL")}`
-                : "$0"}
+              ${averagePrice.toLocaleString("es-CL")}
             </p>
           </div>
         </section>
 
+        <section className="mt-10 rounded-[32px] border border-cyan-500/20 bg-white/5 p-6">
+          <h2 className="text-2xl font-bold">Importar desde Excel</h2>
+
+          <p className="mt-1 text-sm text-zinc-400">
+            Se importarán solo propiedades sin arrendatario y con arriendo
+            válido.
+          </p>
+
+          <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center">
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleExcelUpload}
+              className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-sm text-zinc-300 md:max-w-md"
+            />
+
+            <button
+              onClick={handleImportExcel}
+              disabled={importing || excelPreview.length === 0}
+              className="rounded-2xl bg-white px-6 py-4 font-semibold text-black transition hover:scale-105 disabled:opacity-50"
+            >
+              {importing ? "Importando..." : "Importar propiedades"}
+            </button>
+          </div>
+
+          {excelFileName && (
+            <div className="mt-6 rounded-2xl border border-white/10 bg-black/40 p-5">
+              <p className="font-semibold">Archivo: {excelFileName}</p>
+
+              <p className="mt-2 text-sm text-zinc-400">
+                Propiedades listas para importar: {excelPreview.length}
+              </p>
+
+              <p className="mt-1 text-sm text-zinc-400">
+                Filas omitidas: {skippedRows}
+              </p>
+            </div>
+          )}
+        </section>
+
         <section className="mt-10 rounded-[32px] border border-white/10 bg-white/5 p-6">
           <h2 className="text-2xl font-bold">
-            Agregar propiedad
+            {editingId ? "Editar propiedad" : "Agregar propiedad manual"}
           </h2>
 
           <p className="mt-1 text-sm text-zinc-400">
-            Esta propiedad se guardará directamente en Supabase.
+            {editingId
+              ? "Estás editando una propiedad existente."
+              : "Esta propiedad se guardará directamente en Supabase."}
           </p>
 
           <form
@@ -198,10 +437,7 @@ export default function AdminPage() {
             <input
               value={form.price || ""}
               onChange={(event) =>
-                setForm({
-                  ...form,
-                  price: Number(event.target.value),
-                })
+                setForm({ ...form, price: Number(event.target.value) })
               }
               type="number"
               placeholder="Precio arriendo"
@@ -211,10 +447,7 @@ export default function AdminPage() {
             <input
               value={form.match}
               onChange={(event) =>
-                setForm({
-                  ...form,
-                  match: Number(event.target.value),
-                })
+                setForm({ ...form, match: Number(event.target.value) })
               }
               type="number"
               min={0}
@@ -246,15 +479,11 @@ export default function AdminPage() {
               <option value="from-fuchsia-500 to-cyan-500">
                 Fucsia / Cyan
               </option>
-              <option value="from-cyan-500 to-blue-500">
-                Cyan / Azul
-              </option>
+              <option value="from-cyan-500 to-blue-500">Cyan / Azul</option>
               <option value="from-orange-500 to-pink-500">
                 Naranjo / Rosado
               </option>
-              <option value="from-green-500 to-emerald-500">
-                Verde
-              </option>
+              <option value="from-green-500 to-emerald-500">Verde</option>
             </select>
 
             <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/40 px-5 py-4">
@@ -279,19 +508,33 @@ export default function AdminPage() {
               Acepta mascotas
             </label>
 
-            <button
-              disabled={saving}
-              className="rounded-2xl bg-white px-6 py-4 font-semibold text-black transition hover:scale-105 disabled:opacity-50 md:col-span-2"
-            >
-              {saving ? "Guardando..." : "Guardar propiedad"}
-            </button>
+            <div className="flex flex-col gap-3 md:col-span-2 md:flex-row">
+              <button
+                disabled={saving}
+                className="rounded-2xl bg-white px-6 py-4 font-semibold text-black transition hover:scale-105 disabled:opacity-50"
+              >
+                {saving
+                  ? "Guardando..."
+                  : editingId
+                  ? "Guardar cambios"
+                  : "Guardar propiedad"}
+              </button>
+
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 font-semibold transition hover:bg-white/10"
+                >
+                  Cancelar edición
+                </button>
+              )}
+            </div>
           </form>
         </section>
 
         <section className="mt-10 rounded-[32px] border border-white/10 bg-white/5 p-6">
-          <h2 className="text-2xl font-bold">
-            Listado de propiedades
-          </h2>
+          <h2 className="text-2xl font-bold">Listado de propiedades</h2>
 
           <p className="mt-1 text-sm text-zinc-400">
             Datos cargados desde Supabase.
@@ -303,7 +546,7 @@ export default function AdminPage() {
             </div>
           ) : (
             <div className="mt-6 overflow-x-auto">
-              <table className="w-full min-w-[1100px] border-separate border-spacing-y-3 text-left">
+              <table className="w-full min-w-[1300px] border-separate border-spacing-y-3 text-left">
                 <thead>
                   <tr className="text-sm text-zinc-500">
                     <th className="px-4 py-2">Propiedad</th>
@@ -315,6 +558,7 @@ export default function AdminPage() {
                     <th className="px-4 py-2">Precio</th>
                     <th className="px-4 py-2">Parking</th>
                     <th className="px-4 py-2">Mascotas</th>
+                    <th className="px-4 py-2">Acciones</th>
                   </tr>
                 </thead>
 
@@ -356,8 +600,29 @@ export default function AdminPage() {
                         {property.parking ? "Sí" : "No"}
                       </td>
 
-                      <td className="rounded-r-2xl px-4 py-4">
+                      <td className="px-4 py-4">
                         {property.pets ? "Sí" : "No"}
+                      </td>
+
+                      <td className="rounded-r-2xl px-4 py-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditProperty(property)}
+                            className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300 transition hover:bg-cyan-500/20"
+                          >
+                            Editar
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteProperty(property.id)}
+                            disabled={deletingId === property.id}
+                            className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                          >
+                            {deletingId === property.id
+                              ? "Eliminando..."
+                              : "Eliminar"}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
