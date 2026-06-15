@@ -110,7 +110,7 @@ export default function AdminPage() {
 
     return Math.round(
       properties.reduce((total, property) => total + property.price, 0) /
-        properties.length
+      properties.length
     );
   }, [properties]);
 
@@ -272,368 +272,377 @@ export default function AdminPage() {
 
   return (
     <AdminGuard>
-    <main className="min-h-screen bg-black px-6 py-10 text-white">
-      <div className="mx-auto max-w-7xl">
-        <div className="flex flex-col gap-6 border-b border-white/10 pb-8 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
-              MatchHome Admin
-            </p>
-
-            <h1 className="mt-3 text-4xl font-black">
-              Panel de propiedades
-            </h1>
-
-            <p className="mt-3 max-w-2xl text-zinc-400">
-              Administra propiedades, carga datos manualmente o importa desde
-              Excel.
-            </p>
-          </div>
-
-          <Link
-            href="/"
-            className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-center font-semibold transition hover:bg-white/10"
-          >
-            Volver al sitio
-          </Link>
-        </div>
-
-        <section className="mt-10 grid gap-6 md:grid-cols-4">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <p className="text-sm text-zinc-400">Propiedades</p>
-            <p className="mt-3 text-4xl font-black">{properties.length}</p>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <p className="text-sm text-zinc-400">Con estacionamiento</p>
-            <p className="mt-3 text-4xl font-black">
-              {properties.filter((property) => property.parking).length}
-            </p>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <p className="text-sm text-zinc-400">Aceptan mascotas</p>
-            <p className="mt-3 text-4xl font-black">
-              {properties.filter((property) => property.pets).length}
-            </p>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <p className="text-sm text-zinc-400">Precio promedio</p>
-            <p className="mt-3 text-3xl font-black">
-              ${averagePrice.toLocaleString("es-CL")}
-            </p>
-          </div>
-        </section>
-
-        <section className="mt-10 rounded-[32px] border border-cyan-500/20 bg-white/5 p-6">
-          <h2 className="text-2xl font-bold">Importar desde Excel</h2>
-
-          <p className="mt-1 text-sm text-zinc-400">
-            Se importarán solo propiedades sin arrendatario y con arriendo
-            válido.
-          </p>
-
-          <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center">
-            <input
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleExcelUpload}
-              className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-sm text-zinc-300 md:max-w-md"
-            />
-
-            <button
-              onClick={handleImportExcel}
-              disabled={importing || excelPreview.length === 0}
-              className="rounded-2xl bg-white px-6 py-4 font-semibold text-black transition hover:scale-105 disabled:opacity-50"
-            >
-              {importing ? "Importando..." : "Importar propiedades"}
-            </button>
-          </div>
-
-          {excelFileName && (
-            <div className="mt-6 rounded-2xl border border-white/10 bg-black/40 p-5">
-              <p className="font-semibold">Archivo: {excelFileName}</p>
-
-              <p className="mt-2 text-sm text-zinc-400">
-                Propiedades listas para importar: {excelPreview.length}
+      <main className="min-h-screen bg-black px-6 py-10 text-white">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col gap-6 border-b border-white/10 pb-8 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
+                MatchHome Admin
               </p>
 
-              <p className="mt-1 text-sm text-zinc-400">
-                Filas omitidas: {skippedRows}
+              <h1 className="mt-3 text-4xl font-black">
+                Panel de propiedades
+              </h1>
+
+              <p className="mt-3 max-w-2xl text-zinc-400">
+                Administra propiedades, carga datos manualmente o importa desde
+                Excel.
               </p>
             </div>
-          )}
-        </section>
 
-        <section className="mt-10 rounded-[32px] border border-white/10 bg-white/5 p-6">
-          <h2 className="text-2xl font-bold">
-            {editingId ? "Editar propiedad" : "Agregar propiedad manual"}
-          </h2>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/admin/leads"
+                className="rounded-2xl bg-white px-6 py-3 text-center font-semibold text-black transition hover:scale-105"
+              >
+                Ver leads
+              </Link>
 
-          <p className="mt-1 text-sm text-zinc-400">
-            {editingId
-              ? "Estás editando una propiedad existente."
-              : "Esta propiedad se guardará directamente en Supabase."}
-          </p>
+              <Link
+                href="/"
+                className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-center font-semibold transition hover:bg-white/10"
+              >
+                Volver al sitio
+              </Link>
+            </div>
+          </div>
 
-          <form
-            onSubmit={handleSubmit}
-            className="mt-6 grid gap-4 md:grid-cols-2"
-          >
-            <input
-              value={form.title}
-              onChange={(event) =>
-                setForm({ ...form, title: event.target.value })
-              }
-              placeholder="Título comercial"
-              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
-            />
+          <section className="mt-10 grid gap-6 md:grid-cols-4">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <p className="text-sm text-zinc-400">Propiedades</p>
+              <p className="mt-3 text-4xl font-black">{properties.length}</p>
+            </div>
 
-            <input
-              value={form.project}
-              onChange={(event) =>
-                setForm({ ...form, project: event.target.value })
-              }
-              placeholder="Proyecto / Edificio"
-              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
-            />
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <p className="text-sm text-zinc-400">Con estacionamiento</p>
+              <p className="mt-3 text-4xl font-black">
+                {properties.filter((property) => property.parking).length}
+              </p>
+            </div>
 
-            <input
-              value={form.location}
-              onChange={(event) =>
-                setForm({ ...form, location: event.target.value })
-              }
-              placeholder="Comuna"
-              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
-            />
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <p className="text-sm text-zinc-400">Aceptan mascotas</p>
+              <p className="mt-3 text-4xl font-black">
+                {properties.filter((property) => property.pets).length}
+              </p>
+            </div>
 
-            <input
-              value={form.address}
-              onChange={(event) =>
-                setForm({ ...form, address: event.target.value })
-              }
-              placeholder="Dirección"
-              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
-            />
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+              <p className="text-sm text-zinc-400">Precio promedio</p>
+              <p className="mt-3 text-3xl font-black">
+                ${averagePrice.toLocaleString("es-CL")}
+              </p>
+            </div>
+          </section>
 
-            <input
-              value={form.typology}
-              onChange={(event) =>
-                setForm({ ...form, typology: event.target.value })
-              }
-              placeholder="Tipología, ejemplo: 1D1B"
-              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
-            />
+          <section className="mt-10 rounded-[32px] border border-cyan-500/20 bg-white/5 p-6">
+            <h2 className="text-2xl font-bold">Importar desde Excel</h2>
 
-            <input
-              value={form.metro}
-              onChange={(event) =>
-                setForm({ ...form, metro: event.target.value })
-              }
-              placeholder="Metro cercano"
-              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
-            />
+            <p className="mt-1 text-sm text-zinc-400">
+              Se importarán solo propiedades sin arrendatario y con arriendo
+              válido.
+            </p>
 
-            <input
-              value={form.price || ""}
-              onChange={(event) =>
-                setForm({ ...form, price: Number(event.target.value) })
-              }
-              type="number"
-              placeholder="Precio arriendo"
-              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
-            />
-
-            <input
-              value={form.match}
-              onChange={(event) =>
-                setForm({ ...form, match: Number(event.target.value) })
-              }
-              type="number"
-              min={0}
-              max={100}
-              placeholder="Match"
-              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
-            />
-
-            <select
-              value={form.budget}
-              onChange={(event) =>
-                setForm({ ...form, budget: event.target.value })
-              }
-              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
-            >
-              <option>Hasta $300.000</option>
-              <option>$300.000 - $500.000</option>
-              <option>$500.000 - $800.000</option>
-              <option>$800.000+</option>
-            </select>
-
-            <select
-              value={form.gradient}
-              onChange={(event) =>
-                setForm({ ...form, gradient: event.target.value })
-              }
-              className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
-            >
-              <option value="from-fuchsia-500 to-cyan-500">
-                Fucsia / Cyan
-              </option>
-              <option value="from-cyan-500 to-blue-500">Cyan / Azul</option>
-              <option value="from-orange-500 to-pink-500">
-                Naranjo / Rosado
-              </option>
-              <option value="from-green-500 to-emerald-500">Verde</option>
-            </select>
-
-            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/40 px-5 py-4">
+            <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center">
               <input
-                type="checkbox"
-                checked={form.parking}
-                onChange={(event) =>
-                  setForm({ ...form, parking: event.target.checked })
-                }
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleExcelUpload}
+                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-sm text-zinc-300 md:max-w-md"
               />
-              Tiene estacionamiento
-            </label>
 
-            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/40 px-5 py-4">
-              <input
-                type="checkbox"
-                checked={form.pets}
-                onChange={(event) =>
-                  setForm({ ...form, pets: event.target.checked })
-                }
-              />
-              Acepta mascotas
-            </label>
-
-            <div className="flex flex-col gap-3 md:col-span-2 md:flex-row">
               <button
-                disabled={saving}
+                onClick={handleImportExcel}
+                disabled={importing || excelPreview.length === 0}
                 className="rounded-2xl bg-white px-6 py-4 font-semibold text-black transition hover:scale-105 disabled:opacity-50"
               >
-                {saving
-                  ? "Guardando..."
-                  : editingId
-                  ? "Guardar cambios"
-                  : "Guardar propiedad"}
+                {importing ? "Importando..." : "Importar propiedades"}
               </button>
+            </div>
 
-              {editingId && (
+            {excelFileName && (
+              <div className="mt-6 rounded-2xl border border-white/10 bg-black/40 p-5">
+                <p className="font-semibold">Archivo: {excelFileName}</p>
+
+                <p className="mt-2 text-sm text-zinc-400">
+                  Propiedades listas para importar: {excelPreview.length}
+                </p>
+
+                <p className="mt-1 text-sm text-zinc-400">
+                  Filas omitidas: {skippedRows}
+                </p>
+              </div>
+            )}
+          </section>
+
+          <section className="mt-10 rounded-[32px] border border-white/10 bg-white/5 p-6">
+            <h2 className="text-2xl font-bold">
+              {editingId ? "Editar propiedad" : "Agregar propiedad manual"}
+            </h2>
+
+            <p className="mt-1 text-sm text-zinc-400">
+              {editingId
+                ? "Estás editando una propiedad existente."
+                : "Esta propiedad se guardará directamente en Supabase."}
+            </p>
+
+            <form
+              onSubmit={handleSubmit}
+              className="mt-6 grid gap-4 md:grid-cols-2"
+            >
+              <input
+                value={form.title}
+                onChange={(event) =>
+                  setForm({ ...form, title: event.target.value })
+                }
+                placeholder="Título comercial"
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+              />
+
+              <input
+                value={form.project}
+                onChange={(event) =>
+                  setForm({ ...form, project: event.target.value })
+                }
+                placeholder="Proyecto / Edificio"
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+              />
+
+              <input
+                value={form.location}
+                onChange={(event) =>
+                  setForm({ ...form, location: event.target.value })
+                }
+                placeholder="Comuna"
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+              />
+
+              <input
+                value={form.address}
+                onChange={(event) =>
+                  setForm({ ...form, address: event.target.value })
+                }
+                placeholder="Dirección"
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+              />
+
+              <input
+                value={form.typology}
+                onChange={(event) =>
+                  setForm({ ...form, typology: event.target.value })
+                }
+                placeholder="Tipología, ejemplo: 1D1B"
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+              />
+
+              <input
+                value={form.metro}
+                onChange={(event) =>
+                  setForm({ ...form, metro: event.target.value })
+                }
+                placeholder="Metro cercano"
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+              />
+
+              <input
+                value={form.price || ""}
+                onChange={(event) =>
+                  setForm({ ...form, price: Number(event.target.value) })
+                }
+                type="number"
+                placeholder="Precio arriendo"
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+              />
+
+              <input
+                value={form.match}
+                onChange={(event) =>
+                  setForm({ ...form, match: Number(event.target.value) })
+                }
+                type="number"
+                min={0}
+                max={100}
+                placeholder="Match"
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+              />
+
+              <select
+                value={form.budget}
+                onChange={(event) =>
+                  setForm({ ...form, budget: event.target.value })
+                }
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+              >
+                <option>Hasta $300.000</option>
+                <option>$300.000 - $500.000</option>
+                <option>$500.000 - $800.000</option>
+                <option>$800.000+</option>
+              </select>
+
+              <select
+                value={form.gradient}
+                onChange={(event) =>
+                  setForm({ ...form, gradient: event.target.value })
+                }
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+              >
+                <option value="from-fuchsia-500 to-cyan-500">
+                  Fucsia / Cyan
+                </option>
+                <option value="from-cyan-500 to-blue-500">Cyan / Azul</option>
+                <option value="from-orange-500 to-pink-500">
+                  Naranjo / Rosado
+                </option>
+                <option value="from-green-500 to-emerald-500">Verde</option>
+              </select>
+
+              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/40 px-5 py-4">
+                <input
+                  type="checkbox"
+                  checked={form.parking}
+                  onChange={(event) =>
+                    setForm({ ...form, parking: event.target.checked })
+                  }
+                />
+                Tiene estacionamiento
+              </label>
+
+              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/40 px-5 py-4">
+                <input
+                  type="checkbox"
+                  checked={form.pets}
+                  onChange={(event) =>
+                    setForm({ ...form, pets: event.target.checked })
+                  }
+                />
+                Acepta mascotas
+              </label>
+
+              <div className="flex flex-col gap-3 md:col-span-2 md:flex-row">
                 <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 font-semibold transition hover:bg-white/10"
+                  disabled={saving}
+                  className="rounded-2xl bg-white px-6 py-4 font-semibold text-black transition hover:scale-105 disabled:opacity-50"
                 >
-                  Cancelar edición
+                  {saving
+                    ? "Guardando..."
+                    : editingId
+                      ? "Guardar cambios"
+                      : "Guardar propiedad"}
                 </button>
-              )}
-            </div>
-          </form>
-        </section>
 
-        <section className="mt-10 rounded-[32px] border border-white/10 bg-white/5 p-6">
-          <h2 className="text-2xl font-bold">Listado de propiedades</h2>
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-6 py-4 font-semibold transition hover:bg-white/10"
+                  >
+                    Cancelar edición
+                  </button>
+                )}
+              </div>
+            </form>
+          </section>
 
-          <p className="mt-1 text-sm text-zinc-400">
-            Datos cargados desde Supabase.
-          </p>
+          <section className="mt-10 rounded-[32px] border border-white/10 bg-white/5 p-6">
+            <h2 className="text-2xl font-bold">Listado de propiedades</h2>
 
-          {loading ? (
-            <div className="py-16 text-center text-zinc-400">
-              Cargando propiedades...
-            </div>
-          ) : (
-            <div className="mt-6 overflow-x-auto">
-              <table className="w-full min-w-[1300px] border-separate border-spacing-y-3 text-left">
-                <thead>
-                  <tr className="text-sm text-zinc-500">
-                    <th className="px-4 py-2">Propiedad</th>
-                    <th className="px-4 py-2">Proyecto</th>
-                    <th className="px-4 py-2">Comuna</th>
-                    <th className="px-4 py-2">Dirección</th>
-                    <th className="px-4 py-2">Tipo</th>
-                    <th className="px-4 py-2">Metro</th>
-                    <th className="px-4 py-2">Precio</th>
-                    <th className="px-4 py-2">Parking</th>
-                    <th className="px-4 py-2">Mascotas</th>
-                    <th className="px-4 py-2">Acciones</th>
-                  </tr>
-                </thead>
+            <p className="mt-1 text-sm text-zinc-400">
+              Datos cargados desde Supabase.
+            </p>
 
-                <tbody>
-                  {properties.map((property) => (
-                    <tr
-                      key={property.id}
-                      className="rounded-2xl bg-black/40 text-sm"
-                    >
-                      <td className="rounded-l-2xl px-4 py-4 font-semibold">
-                        {property.title}
-                      </td>
-
-                      <td className="px-4 py-4 text-zinc-300">
-                        {property.project || "-"}
-                      </td>
-
-                      <td className="px-4 py-4 text-zinc-300">
-                        {property.location}
-                      </td>
-
-                      <td className="px-4 py-4 text-zinc-300">
-                        {property.address || "-"}
-                      </td>
-
-                      <td className="px-4 py-4 text-zinc-300">
-                        {property.typology || "-"}
-                      </td>
-
-                      <td className="px-4 py-4 text-zinc-300">
-                        {property.metro || "-"}
-                      </td>
-
-                      <td className="px-4 py-4 text-zinc-300">
-                        ${property.price.toLocaleString("es-CL")}
-                      </td>
-
-                      <td className="px-4 py-4">
-                        {property.parking ? "Sí" : "No"}
-                      </td>
-
-                      <td className="px-4 py-4">
-                        {property.pets ? "Sí" : "No"}
-                      </td>
-
-                      <td className="rounded-r-2xl px-4 py-4">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditProperty(property)}
-                            className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300 transition hover:bg-cyan-500/20"
-                          >
-                            Editar
-                          </button>
-
-                          <button
-                            onClick={() => handleDeleteProperty(property.id)}
-                            disabled={deletingId === property.id}
-                            className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
-                          >
-                            {deletingId === property.id
-                              ? "Eliminando..."
-                              : "Eliminar"}
-                          </button>
-                        </div>
-                      </td>
+            {loading ? (
+              <div className="py-16 text-center text-zinc-400">
+                Cargando propiedades...
+              </div>
+            ) : (
+              <div className="mt-6 overflow-x-auto">
+                <table className="w-full min-w-[1300px] border-separate border-spacing-y-3 text-left">
+                  <thead>
+                    <tr className="text-sm text-zinc-500">
+                      <th className="px-4 py-2">Propiedad</th>
+                      <th className="px-4 py-2">Proyecto</th>
+                      <th className="px-4 py-2">Comuna</th>
+                      <th className="px-4 py-2">Dirección</th>
+                      <th className="px-4 py-2">Tipo</th>
+                      <th className="px-4 py-2">Metro</th>
+                      <th className="px-4 py-2">Precio</th>
+                      <th className="px-4 py-2">Parking</th>
+                      <th className="px-4 py-2">Mascotas</th>
+                      <th className="px-4 py-2">Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      </div>
-    </main>
+                  </thead>
+
+                  <tbody>
+                    {properties.map((property) => (
+                      <tr
+                        key={property.id}
+                        className="rounded-2xl bg-black/40 text-sm"
+                      >
+                        <td className="rounded-l-2xl px-4 py-4 font-semibold">
+                          {property.title}
+                        </td>
+
+                        <td className="px-4 py-4 text-zinc-300">
+                          {property.project || "-"}
+                        </td>
+
+                        <td className="px-4 py-4 text-zinc-300">
+                          {property.location}
+                        </td>
+
+                        <td className="px-4 py-4 text-zinc-300">
+                          {property.address || "-"}
+                        </td>
+
+                        <td className="px-4 py-4 text-zinc-300">
+                          {property.typology || "-"}
+                        </td>
+
+                        <td className="px-4 py-4 text-zinc-300">
+                          {property.metro || "-"}
+                        </td>
+
+                        <td className="px-4 py-4 text-zinc-300">
+                          ${property.price.toLocaleString("es-CL")}
+                        </td>
+
+                        <td className="px-4 py-4">
+                          {property.parking ? "Sí" : "No"}
+                        </td>
+
+                        <td className="px-4 py-4">
+                          {property.pets ? "Sí" : "No"}
+                        </td>
+
+                        <td className="rounded-r-2xl px-4 py-4">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditProperty(property)}
+                              className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300 transition hover:bg-cyan-500/20"
+                            >
+                              Editar
+                            </button>
+
+                            <button
+                              onClick={() => handleDeleteProperty(property.id)}
+                              disabled={deletingId === property.id}
+                              className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                            >
+                              {deletingId === property.id
+                                ? "Eliminando..."
+                                : "Eliminar"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
     </AdminGuard>
   );
 }
