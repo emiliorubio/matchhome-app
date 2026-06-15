@@ -7,5 +7,6 @@ export type Lead = {
   phone: string;
   income: string | null;
   message: string | null;
+  status: string | null;
   created_at: string;
 };

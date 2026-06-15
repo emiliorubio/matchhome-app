@@ -14,7 +14,10 @@ export type NewLead = {
 export async function createLead(lead: NewLead) {
   const { data, error } = await supabase
     .from("leads")
-    .insert(lead)
+    .insert({
+      ...lead,
+      status: "Nuevo",
+    })
     .select()
     .single();
 
@@ -38,4 +41,20 @@ export async function getLeads(): Promise<Lead[]> {
   }
 
   return data ?? [];
+}
+
+export async function updateLeadStatus(id: number, status: string) {
+  const { data, error } = await supabase
+    .from("leads")
+    .update({ status })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating lead status:", error);
+    return null;
+  }
+
+  return data as Lead;
 }
