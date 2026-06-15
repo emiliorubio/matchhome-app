@@ -1,4 +1,5 @@
 import { supabase } from "@/src/lib/supabase";
+import { Lead } from "@/src/types/lead";
 
 export type NewLead = {
   property_title: string;
@@ -23,4 +24,18 @@ export async function createLead(lead: NewLead) {
   }
 
   return data;
+}
+
+export async function getLeads(): Promise<Lead[]> {
+  const { data, error } = await supabase
+    .from("leads")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error loading leads:", error);
+    return [];
+  }
+
+  return data ?? [];
 }
