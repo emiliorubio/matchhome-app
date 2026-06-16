@@ -27,6 +27,8 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState("Todos");
+  const [propertyFilter, setPropertyFilter] = useState("Todas");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     async function loadLeads() {
@@ -39,15 +41,40 @@ export default function LeadsPage() {
     loadLeads();
   }, []);
 
-  const filteredLeads = useMemo(() => {
-    if (statusFilter === "Todos") {
-      return leads;
-    }
-
-    return leads.filter(
-      (lead) => (lead.status || "Nuevo") === statusFilter
+  const propertyOptions = useMemo(() => {
+    const uniqueProperties = Array.from(
+      new Set(
+        leads
+          .map((lead) => lead.property_title)
+          .filter(Boolean)
+      )
     );
-  }, [leads, statusFilter]);
+
+    return ["Todas", ...uniqueProperties];
+  }, [leads]);
+
+  const filteredLeads = useMemo(() => {
+    return leads.filter((lead) => {
+      const matchesStatus =
+        statusFilter === "Todos" ||
+        (lead.status || "Nuevo") === statusFilter;
+
+      const matchesProperty =
+        propertyFilter === "Todas" ||
+        lead.property_title === propertyFilter;
+
+      const cleanSearch = search.toLowerCase().trim();
+
+      const matchesSearch =
+        !cleanSearch ||
+        lead.name.toLowerCase().includes(cleanSearch) ||
+        lead.phone.toLowerCase().includes(cleanSearch) ||
+        lead.property_title.toLowerCase().includes(cleanSearch) ||
+        (lead.income || "").toLowerCase().includes(cleanSearch);
+
+      return matchesStatus && matchesProperty && matchesSearch;
+    });
+  }, [leads, statusFilter, propertyFilter, search]);
 
   async function handleStatusChange(id: number, status: string) {
     setUpdatingId(id);
@@ -88,7 +115,7 @@ export default function LeadsPage() {
               </h1>
 
               <p className="mt-3 max-w-2xl text-zinc-400">
-                Gestiona postulantes, estados y contacto por WhatsApp.
+                Gestiona postulantes, campañas, estados y contacto por WhatsApp.
               </p>
             </div>
 
@@ -150,7 +177,7 @@ export default function LeadsPage() {
           </section>
 
           <section className="mt-10 rounded-[32px] border border-white/10 bg-white/5 p-6">
-            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
               <div>
                 <h2 className="text-2xl font-bold">
                   Solicitudes
@@ -159,22 +186,49 @@ export default function LeadsPage() {
                 <p className="mt-1 text-sm text-zinc-400">
                   Mostrando {filteredLeads.length} de {leads.length} leads.
                 </p>
+
+                {propertyFilter !== "Todas" && (
+                  <p className="mt-2 text-sm text-cyan-400">
+                    Campaña / propiedad filtrada: {propertyFilter}
+                  </p>
+                )}
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                {statusFilters.map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => setStatusFilter(status)}
-                    className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
-                      statusFilter === status
-                        ? "bg-white text-black"
-                        : "border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10"
-                    }`}
-                  >
-                    {status}
-                  </button>
-                ))}
+              <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Buscar nombre, teléfono o propiedad..."
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-3 text-sm text-white outline-none transition focus:border-cyan-400 md:w-[380px]"
+                />
+
+                <select
+                  value={propertyFilter}
+                  onChange={(event) => setPropertyFilter(event.target.value)}
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-3 text-sm text-white outline-none transition focus:border-cyan-400 md:w-[380px]"
+                >
+                  {propertyOptions.map((property) => (
+                    <option key={property} value={property}>
+                      {property}
+                    </option>
+                  ))}
+                </select>
+
+                <div className="flex flex-wrap gap-2">
+                  {statusFilters.map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setStatusFilter(status)}
+                      className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+                        statusFilter === status
+                          ? "bg-white text-black"
+                          : "border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10"
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -184,7 +238,7 @@ export default function LeadsPage() {
               </div>
             ) : filteredLeads.length === 0 ? (
               <div className="py-16 text-center text-zinc-400">
-                No hay leads para este filtro.
+                No hay leads para estos filtros.
               </div>
             ) : (
               <div className="mt-6 overflow-x-auto">
