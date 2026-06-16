@@ -15,5 +15,6 @@ export type Property = {
   featured: boolean | null;
   description: string | null;
   photos: string | null;
+  cover_photo: string | null;
   status: string | null;
 };

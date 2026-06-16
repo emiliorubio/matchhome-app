@@ -1,4 +1,5 @@
 "use client";
+
 import { AdminGuard } from "@/src/components/AdminGuard";
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -11,6 +12,7 @@ import {
   getProperties,
   NewProperty,
   updateProperty,
+  uploadPropertyPhotos,
 } from "@/src/services/properties";
 import { Property } from "@/src/types/property";
 
@@ -34,6 +36,11 @@ const initialForm: NewProperty = {
   metro: "",
   address: "",
   project: "",
+  featured: false,
+  description: "",
+  cover_photo: "",
+  photos: "",
+  status: "Disponible",
 };
 
 function getBudgetFromPrice(price: number) {
@@ -75,7 +82,7 @@ function normalizeExcelRow(row: Record<string, unknown>, index: number) {
 
   if (!address || !location || price <= 1000) return null;
 
-  return {
+  const property: NewProperty = {
     title: address,
     project,
     address,
@@ -88,7 +95,14 @@ function normalizeExcelRow(row: Record<string, unknown>, index: number) {
     budget: getBudgetFromPrice(price),
     parking: hasValue(parkingValue),
     pets: true,
+    featured: false,
+    description: "",
+    photos: "",
+    cover_photo: "",
+    status: "Disponible",
   };
+
+  return property;
 }
 
 export default function AdminPage() {
@@ -104,6 +118,7 @@ export default function AdminPage() {
   const [excelFileName, setExcelFileName] = useState("");
   const [importing, setImporting] = useState(false);
   const [skippedRows, setSkippedRows] = useState(0);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
 
   const averagePrice = useMemo(() => {
     if (properties.length === 0) return 0;
@@ -179,6 +194,11 @@ export default function AdminPage() {
       metro: property.metro ?? "",
       address: property.address ?? "",
       project: property.project ?? "",
+      featured: property.featured ?? false,
+      description: property.description ?? "",
+      photos: property.photos ?? "",
+      cover_photo: property.cover_photo ?? "",
+      status: property.status ?? "Disponible",
     });
 
     window.scrollTo({
@@ -270,6 +290,36 @@ export default function AdminPage() {
     setImporting(false);
   }
 
+  async function handlePhotoUpload(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+
+    if (files.length === 0) return;
+
+    setUploadingPhotos(true);
+
+    const uploadedUrls = await uploadPropertyPhotos(files);
+
+    if (uploadedUrls.length > 0) {
+      const currentPhotos = form.photos
+        ? form.photos
+          .split(",")
+          .map((photo) => photo.trim())
+          .filter(Boolean)
+        : [];
+
+      const nextPhotos = [...currentPhotos, ...uploadedUrls];
+
+      setForm({
+        ...form,
+        photos: nextPhotos.join(","),
+      });
+    } else {
+      alert("No se pudo subir ninguna foto.");
+    }
+
+    setUploadingPhotos(false);
+  }
+
   return (
     <AdminGuard>
       <main className="min-h-screen bg-black px-6 py-10 text-white">
@@ -314,16 +364,16 @@ export default function AdminPage() {
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-              <p className="text-sm text-zinc-400">Con estacionamiento</p>
+              <p className="text-sm text-zinc-400">Destacadas</p>
               <p className="mt-3 text-4xl font-black">
-                {properties.filter((property) => property.parking).length}
+                {properties.filter((property) => property.featured).length}
               </p>
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-              <p className="text-sm text-zinc-400">Aceptan mascotas</p>
+              <p className="text-sm text-zinc-400">Con estacionamiento</p>
               <p className="mt-3 text-4xl font-black">
-                {properties.filter((property) => property.pets).length}
+                {properties.filter((property) => property.parking).length}
               </p>
             </div>
 
@@ -496,6 +546,18 @@ export default function AdminPage() {
                 <option value="from-green-500 to-emerald-500">Verde</option>
               </select>
 
+              <select
+                value={form.status}
+                onChange={(event) =>
+                  setForm({ ...form, status: event.target.value })
+                }
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+              >
+                <option value="Disponible">Disponible</option>
+                <option value="Reservado">Reservado</option>
+                <option value="Arrendado">Arrendado</option>
+              </select>
+
               <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/40 px-5 py-4">
                 <input
                   type="checkbox"
@@ -518,9 +580,100 @@ export default function AdminPage() {
                 Acepta mascotas
               </label>
 
+              <label className="flex items-center gap-3 rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-5 py-4">
+                <input
+                  type="checkbox"
+                  checked={form.featured}
+                  onChange={(event) =>
+                    setForm({ ...form, featured: event.target.checked })
+                  }
+                />
+                Propiedad destacada
+              </label>
+
+              <textarea
+                value={form.description}
+                onChange={(event) =>
+                  setForm({ ...form, description: event.target.value })
+                }
+                placeholder="Descripción completa de la propiedad"
+                rows={4}
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500 md:col-span-2"
+              />
+
+              <textarea
+                value={form.photos}
+                onChange={(event) =>
+                  setForm({ ...form, photos: event.target.value })
+                }
+                placeholder="URLs de fotos separadas por coma"
+                rows={3}
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500 md:col-span-2"
+              />
+
+              <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-5 md:col-span-2">
+                <p className="font-semibold text-cyan-300">
+                  Subir fotos a Supabase
+                </p>
+
+                <p className="mt-1 text-sm text-zinc-400">
+                  Puedes seleccionar varias imágenes. Se agregarán
+                  automáticamente al campo de fotos.
+                </p>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handlePhotoUpload}
+                  className="mt-4 w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-sm text-zinc-300"
+                />
+
+                {uploadingPhotos && (
+                  <p className="mt-3 text-sm text-cyan-300">
+                    Subiendo fotos...
+                  </p>
+                )}
+
+                {form.photos && (
+                  <div className="mt-5 grid gap-3 md:grid-cols-4">
+                    {form.photos
+                      .split(",")
+                      .map((photo) => photo.trim())
+                      .filter(Boolean)
+                      .slice(0, 8)
+                      .map((photo) => (
+                        <div key={photo} className="relative">
+                          <img
+                            src={photo}
+                            alt="Foto propiedad"
+                            className={`h-24 w-full rounded-xl object-cover ${form.cover_photo === photo
+                                ? "ring-4 ring-cyan-400"
+                                : ""
+                              }`}
+                          />
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setForm({
+                                ...form,
+                                cover_photo: photo,
+                              })
+                            }
+                            className="absolute bottom-2 left-2 rounded-full bg-black/70 px-3 py-1 text-xs text-white backdrop-blur-xl"
+                          >
+                            {form.cover_photo === photo ? "Portada" : "Usar portada"}
+                          </button>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+
               <div className="flex flex-col gap-3 md:col-span-2 md:flex-row">
                 <button
-                  disabled={saving}
+                  disabled={saving || uploadingPhotos}
                   className="rounded-2xl bg-white px-6 py-4 font-semibold text-black transition hover:scale-105 disabled:opacity-50"
                 >
                   {saving
@@ -556,18 +709,20 @@ export default function AdminPage() {
               </div>
             ) : (
               <div className="mt-6 overflow-x-auto">
-                <table className="w-full min-w-[1300px] border-separate border-spacing-y-3 text-left">
+                <table className="w-full min-w-[1500px] border-separate border-spacing-y-3 text-left">
                   <thead>
                     <tr className="text-sm text-zinc-500">
                       <th className="px-4 py-2">Propiedad</th>
+                      <th className="px-4 py-2">Destacada</th>
+                      <th className="px-4 py-2">Estado</th>
                       <th className="px-4 py-2">Proyecto</th>
                       <th className="px-4 py-2">Comuna</th>
-                      <th className="px-4 py-2">Dirección</th>
                       <th className="px-4 py-2">Tipo</th>
                       <th className="px-4 py-2">Metro</th>
                       <th className="px-4 py-2">Precio</th>
                       <th className="px-4 py-2">Parking</th>
                       <th className="px-4 py-2">Mascotas</th>
+                      <th className="px-4 py-2">Fotos</th>
                       <th className="px-4 py-2">Acciones</th>
                     </tr>
                   </thead>
@@ -582,16 +737,20 @@ export default function AdminPage() {
                           {property.title}
                         </td>
 
+                        <td className="px-4 py-4">
+                          {property.featured ? "Sí" : "No"}
+                        </td>
+
+                        <td className="px-4 py-4 text-zinc-300">
+                          {property.status || "Disponible"}
+                        </td>
+
                         <td className="px-4 py-4 text-zinc-300">
                           {property.project || "-"}
                         </td>
 
                         <td className="px-4 py-4 text-zinc-300">
                           {property.location}
-                        </td>
-
-                        <td className="px-4 py-4 text-zinc-300">
-                          {property.address || "-"}
                         </td>
 
                         <td className="px-4 py-4 text-zinc-300">
@@ -612,6 +771,10 @@ export default function AdminPage() {
 
                         <td className="px-4 py-4">
                           {property.pets ? "Sí" : "No"}
+                        </td>
+
+                        <td className="px-4 py-4">
+                          {property.photos ? "Sí" : "No"}
                         </td>
 
                         <td className="rounded-r-2xl px-4 py-4">

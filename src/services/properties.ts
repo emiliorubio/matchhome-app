@@ -14,12 +14,18 @@ export type NewProperty = {
   metro: string;
   address: string;
   project: string;
+  featured: boolean;
+  description: string;
+  photos: string;
+  cover_photo: string;
+  status: string;
 };
 
 export async function getProperties(): Promise<Property[]> {
   const { data, error } = await supabase
     .from("properties")
     .select("*")
+    .order("featured", { ascending: false })
     .order("id", { ascending: false });
 
   if (error) {
@@ -28,6 +34,21 @@ export async function getProperties(): Promise<Property[]> {
   }
 
   return data ?? [];
+}
+
+export async function getPropertyById(id: number): Promise<Property | null> {
+  const { data, error } = await supabase
+    .from("properties")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error loading property:", error);
+    return null;
+  }
+
+  return data as Property;
 }
 
 export async function createProperty(property: NewProperty) {
@@ -59,10 +80,7 @@ export async function createPropertiesBulk(properties: NewProperty[]) {
   return data as Property[];
 }
 
-export async function updateProperty(
-  id: number,
-  property: NewProperty
-) {
+export async function updateProperty(id: number, property: NewProperty) {
   const { data, error } = await supabase
     .from("properties")
     .update(property)
@@ -92,17 +110,33 @@ export async function deleteProperty(id: number) {
   return true;
 }
 
-export async function getPropertyById(id: number): Promise<Property | null> {
-  const { data, error } = await supabase
-    .from("properties")
-    .select("*")
-    .eq("id", id)
-    .single();
+export async function uploadPropertyPhotos(files: File[]) {
+  const uploadedUrls: string[] = [];
 
-  if (error) {
-    console.error("Error loading property:", error);
-    return null;
+  for (const file of files) {
+    const fileExtension = file.name.split(".").pop() || "jpg";
+
+    const fileName = `${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2)}.${fileExtension}`;
+
+    const filePath = `properties/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from("property-photos")
+      .upload(filePath, file);
+
+    if (error) {
+      console.error("Error uploading photo:", error);
+      continue;
+    }
+
+    const { data } = supabase.storage
+      .from("property-photos")
+      .getPublicUrl(filePath);
+
+    uploadedUrls.push(data.publicUrl);
   }
 
-  return data as Property;
+  return uploadedUrls;
 }

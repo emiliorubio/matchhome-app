@@ -332,6 +332,7 @@ export default function Home() {
                   onFavorite={() => toggleFavorite(property.id)}
                   typology={property.typology}
                   metro={property.metro}
+                  coverPhoto={property.cover_photo}
                 />
               ))}
             </div>
@@ -381,6 +382,7 @@ export default function Home() {
                   onFavorite={() => toggleFavorite(property.id)}
                   typology={property.typology}
                   metro={property.metro}
+                  coverPhoto={property.cover_photo}
                 />
               ))}
             </div>
@@ -421,6 +423,7 @@ export default function Home() {
                   onFavorite={() => toggleFavorite(property.id)}
                   typology={property.typology}
                   metro={property.metro}
+                  coverPhoto={property.cover_photo}
                 />
               ))}
             </div>

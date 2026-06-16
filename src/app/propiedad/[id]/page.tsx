@@ -12,6 +12,7 @@ export default function PropertyDetailPage() {
   const params = useParams();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentPhoto, setCurrentPhoto] = useState(0);
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
 
@@ -73,6 +74,15 @@ export default function PropertyDetailPage() {
         .filter(Boolean)
     : [];
 
+  const orderedPhotos = property.cover_photo
+    ? [
+        property.cover_photo,
+        ...photos.filter((photo) => photo !== property.cover_photo),
+      ]
+    : photos;
+
+  const activePhoto = orderedPhotos[currentPhoto];
+
   const message = encodeURIComponent(
     `Hola, me interesa esta propiedad:\n\n${property.title}\n${property.typology || ""}\n${property.location}\n$${property.price.toLocaleString("es-CL")}\n\nQuiero iniciar la preevaluación.`
   );
@@ -80,6 +90,18 @@ export default function PropertyDetailPage() {
   const whatsappUrl = whatsappNumber
     ? `https://wa.me/${whatsappNumber}?text=${message}`
     : "#";
+
+  function nextPhoto() {
+    setCurrentPhoto((prev) =>
+      prev === orderedPhotos.length - 1 ? 0 : prev + 1
+    );
+  }
+
+  function previousPhoto() {
+    setCurrentPhoto((prev) =>
+      prev === 0 ? orderedPhotos.length - 1 : prev - 1
+    );
+  }
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -97,12 +119,36 @@ export default function PropertyDetailPage() {
           <div className="mt-10 grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
             <div>
               <div className="rounded-[36px] border border-white/10 bg-white/5 p-5">
-                {photos.length > 0 ? (
-                  <img
-                    src={photos[0]}
-                    alt={property.title}
-                    className="h-[420px] w-full rounded-[28px] object-cover"
-                  />
+                {activePhoto ? (
+                  <div className="relative">
+                    <img
+                      src={activePhoto}
+                      alt={property.title}
+                      className="h-[420px] w-full rounded-[28px] object-cover"
+                    />
+
+                    {orderedPhotos.length > 1 && (
+                      <>
+                        <button
+                          onClick={previousPhoto}
+                          className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/60 px-4 py-3 text-white backdrop-blur-xl transition hover:bg-black/80"
+                        >
+                          ←
+                        </button>
+
+                        <button
+                          onClick={nextPhoto}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/60 px-4 py-3 text-white backdrop-blur-xl transition hover:bg-black/80"
+                        >
+                          →
+                        </button>
+
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-sm text-white">
+                          {currentPhoto + 1} / {orderedPhotos.length}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 ) : (
                   <div
                     className={`flex h-[420px] w-full items-center justify-center rounded-[28px] bg-gradient-to-br ${property.gradient}`}
@@ -114,15 +160,24 @@ export default function PropertyDetailPage() {
                 )}
               </div>
 
-              {photos.length > 1 && (
-                <div className="mt-5 grid gap-4 md:grid-cols-3">
-                  {photos.slice(1, 4).map((photo) => (
-                    <img
+              {orderedPhotos.length > 1 && (
+                <div className="mt-5 grid gap-4 grid-cols-3 md:grid-cols-5">
+                  {orderedPhotos.map((photo, index) => (
+                    <button
                       key={photo}
-                      src={photo}
-                      alt={property.title}
-                      className="h-32 w-full rounded-2xl object-cover"
-                    />
+                      onClick={() => setCurrentPhoto(index)}
+                      className={`overflow-hidden rounded-2xl border transition ${
+                        currentPhoto === index
+                          ? "border-cyan-400"
+                          : "border-white/10 opacity-70 hover:opacity-100"
+                      }`}
+                    >
+                      <img
+                        src={photo}
+                        alt={property.title}
+                        className="h-24 w-full object-cover"
+                      />
+                    </button>
                   ))}
                 </div>
               )}

@@ -19,6 +19,7 @@ type PropertyCardProps = {
   onFavorite?: () => void;
   typology?: string | null;
   metro?: string | null;
+  coverPhoto?: string | null;
 };
 
 export function PropertyCard({
@@ -32,6 +33,7 @@ export function PropertyCard({
   onFavorite,
   typology,
   metro,
+  coverPhoto,
 }: PropertyCardProps) {
   const [showModal, setShowModal] = useState(false);
   const [savingLead, setSavingLead] = useState(false);
@@ -81,14 +83,8 @@ export function PropertyCard({
     }
 
     window.open(whatsappUrl, "_blank");
-
     setShowModal(false);
-    setLeadForm({
-      name: "",
-      phone: "",
-      income: "",
-      message: "",
-    });
+    setLeadForm({ name: "", phone: "", income: "", message: "" });
   }
 
   const modal =
@@ -158,17 +154,6 @@ export function PropertyCard({
               className="w-full resize-none rounded-2xl border border-white/10 bg-zinc-900 px-5 py-4 text-white placeholder:text-zinc-500 outline-none focus:border-cyan-400"
             />
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-zinc-300">
-              <p className="font-semibold text-white">
-                Requisitos habituales:
-              </p>
-
-              <p className="mt-2 leading-relaxed">
-                Renta compatible, documentación vigente, cédula vigente y
-                evaluación comercial.
-              </p>
-            </div>
-
             <button
               disabled={savingLead}
               className="rounded-2xl bg-white px-6 py-4 font-bold text-black transition hover:scale-[1.02] disabled:opacity-50"
@@ -203,7 +188,15 @@ export function PropertyCard({
         </button>
 
         <Link href={`/propiedad/${id}`}>
-          <div className={`h-48 rounded-2xl bg-gradient-to-br ${gradient}`} />
+          {coverPhoto ? (
+            <img
+              src={coverPhoto}
+              alt={title}
+              className="h-48 w-full rounded-2xl object-cover"
+            />
+          ) : (
+            <div className={`h-48 rounded-2xl bg-gradient-to-br ${gradient}`} />
+          )}
         </Link>
 
         <div className="mt-5">
