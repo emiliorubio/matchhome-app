@@ -13,6 +13,13 @@ import { questions } from "@/src/data/questions";
 import { getProperties } from "@/src/services/properties";
 import { Property } from "@/src/types/property";
 
+function normalizeText(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 export default function Home() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,8 +27,10 @@ export default function Home() {
   const [answers, setAnswers] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [search, setSearch] = useState("");
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(true);
 
   const isFinished = currentQuestion >= questions.length;
+  const isSearching = search.trim().length > 0;
 
   const progress = Math.round(
     (currentQuestion / questions.length) * 100
@@ -30,7 +39,6 @@ export default function Home() {
   useEffect(() => {
     async function loadProperties() {
       const data = await getProperties();
-
       setProperties(data);
       setLoading(false);
     }
@@ -53,25 +61,43 @@ export default function Home() {
     );
   }, [favorites]);
 
+  useEffect(() => {
+    if (isSearching) {
+      setIsOnboardingOpen(false);
+    }
+  }, [isSearching]);
+
   const matchedProperties = useMemo(() => {
     const budgetAnswer = answers[0];
     const locationAnswer = answers[1];
     const parkingAnswer = answers[2];
+    const cleanSearch = normalizeText(search.trim());
 
     return properties.filter((property) => {
       const matchesBudget =
-        !budgetAnswer || property.budget === budgetAnswer;
+        !budgetAnswer || isSearching || property.budget === budgetAnswer;
 
       const matchesLocation =
-        !locationAnswer || property.location === locationAnswer;
+        !locationAnswer || isSearching || property.location === locationAnswer;
 
       const matchesParking =
         !parkingAnswer ||
+        isSearching ||
         (parkingAnswer === "Sí" ? property.parking : true);
 
+      const searchableText = normalizeText(
+        [
+          property.title,
+          property.location,
+          property.address || "",
+          property.metro || "",
+          property.typology || "",
+          property.project || "",
+        ].join(" ")
+      );
+
       const matchesSearch =
-        property.title.toLowerCase().includes(search.toLowerCase()) ||
-        property.location.toLowerCase().includes(search.toLowerCase());
+        !cleanSearch || searchableText.includes(cleanSearch);
 
       return (
         matchesBudget &&
@@ -80,7 +106,7 @@ export default function Home() {
         matchesSearch
       );
     });
-  }, [properties, answers, search]);
+  }, [properties, answers, search, isSearching]);
 
   const favoriteProperties = properties.filter((property) =>
     favorites.includes(property.id)
@@ -99,6 +125,8 @@ export default function Home() {
   const resetOnboarding = () => {
     setAnswers([]);
     setCurrentQuestion(0);
+    setSearch("");
+    setIsOnboardingOpen(true);
   };
 
   return (
@@ -108,12 +136,12 @@ export default function Home() {
       <div className="absolute left-[-200px] top-[-200px] h-[500px] w-[500px] rounded-full bg-fuchsia-500/20 blur-3xl" />
       <div className="absolute bottom-[-200px] right-[-200px] h-[500px] w-[500px] rounded-full bg-cyan-500/20 blur-3xl" />
 
-      <section className="relative flex min-h-screen flex-col items-center justify-center px-6 py-20 text-center">
+      <section className="relative flex min-h-screen flex-col items-center px-6 py-20 text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="mb-6 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-300 backdrop-blur-xl"
+          className="mt-10 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-300 backdrop-blur-xl"
         >
           La nueva experiencia para encontrar arriendo en Chile
         </motion.div>
@@ -122,7 +150,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
-          className="max-w-5xl text-5xl font-black leading-tight tracking-tight md:text-7xl"
+          className="mt-8 max-w-5xl text-5xl font-black leading-tight tracking-tight md:text-7xl"
         >
           Encuentra tu próximo{" "}
           <span className="bg-gradient-to-r from-fuchsia-500 to-cyan-400 bg-clip-text text-transparent">
@@ -141,21 +169,141 @@ export default function Home() {
           experiencia rápida, visual e inteligente.
         </motion.p>
 
-        <div className="mt-14 flex w-full justify-center">
+        <div className="mt-12 flex w-full justify-center">
           <SearchBar value={search} onChange={setSearch} />
+        </div>
+
+        {isSearching && (
+          <button
+            onClick={() => {
+              setSearch("");
+              setIsOnboardingOpen(true);
+            }}
+            className="mt-4 rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm text-zinc-300 transition hover:bg-white/10"
+          >
+            Limpiar búsqueda y volver al match
+          </button>
+        )}
+
+        <div className="mt-10 w-full max-w-3xl rounded-[32px] border border-cyan-500/20 bg-white/5 p-5 backdrop-blur-xl">
+          <button
+            onClick={() => setIsOnboardingOpen((prev) => !prev)}
+            className="flex w-full items-center justify-between gap-4 text-left"
+          >
+            <div>
+              <p className="text-sm uppercase tracking-[0.25em] text-cyan-400">
+                Match rápido
+              </p>
+
+              <h2 className="mt-2 text-2xl font-black">
+                Encuentra opciones según tu perfil
+              </h2>
+
+              <p className="mt-1 text-sm text-zinc-400">
+                {isSearching
+                  ? "Búsqueda activa: el match está minimizado."
+                  : isFinished
+                  ? "Matching completado."
+                  : "Responde 3 preguntas rápidas."}
+              </p>
+            </div>
+
+            <span className="rounded-full bg-white/10 px-4 py-2 text-sm text-zinc-300">
+              {isOnboardingOpen ? "Ocultar" : "Mostrar"}
+            </span>
+          </button>
+
+          <AnimatePresence>
+            {isOnboardingOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-6 flex flex-col items-center">
+                  {!isFinished ? (
+                    <>
+                      <ProgressBar progress={progress} />
+
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={currentQuestion}
+                          initial={{ opacity: 0, x: 60 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -60 }}
+                          transition={{ duration: 0.35 }}
+                          className="mt-8"
+                        >
+                          <QuestionCard
+                            question={questions[currentQuestion].question}
+                            options={questions[currentQuestion].options}
+                            onSelect={(option) => {
+                              setAnswers([...answers, option]);
+
+                              setTimeout(() => {
+                                setCurrentQuestion(currentQuestion + 1);
+                              }, 200);
+                            }}
+                          />
+                        </motion.div>
+                      </AnimatePresence>
+
+                      <div className="mt-8 flex flex-wrap justify-center gap-3 text-zinc-400">
+                        {answers.map((answer, index) => (
+                          <motion.p
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            key={index}
+                            className="rounded-xl bg-white/5 px-4 py-2"
+                          >
+                            {answer}
+                          </motion.p>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="rounded-[28px] border border-green-500/20 bg-white/5 p-6 text-center">
+                      <div className="mb-4 inline-flex rounded-full bg-green-500/20 px-4 py-2 text-sm text-green-400">
+                        Matching completado
+                      </div>
+
+                      <h3 className="text-2xl font-black">
+                        Encontramos {matchedProperties.length} propiedades compatibles.
+                      </h3>
+
+                      <p className="mt-3 text-zinc-400">
+                        Puedes buscar, ver resultados o repetir el match.
+                      </p>
+
+                      <button
+                        onClick={resetOnboarding}
+                        className="mt-5 rounded-2xl bg-white px-6 py-3 font-semibold text-black transition hover:scale-105"
+                      >
+                        Repetir búsqueda
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.8, duration: 0.8 }}
-          className="mt-12 w-full max-w-5xl rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl"
+          transition={{ delay: 0.4, duration: 0.8 }}
+          className="mt-10 w-full max-w-6xl rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl"
         >
-          <div className="mb-6 flex items-center justify-between gap-4 text-left">
+          <div className="mb-6 flex flex-col gap-4 text-left md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-2xl font-bold">
-                Propiedades recomendadas
+                {isSearching
+                  ? "Resultados de búsqueda"
+                  : "Propiedades recomendadas"}
               </h2>
+
               <p className="mt-1 text-sm text-zinc-400">
                 {matchedProperties.length} resultados disponibles
               </p>
@@ -174,17 +322,17 @@ export default function Home() {
             <div className="grid gap-6 md:grid-cols-3">
               {matchedProperties.map((property) => (
                 <PropertyCard
-  key={property.id}
-  title={property.title}
-  location={property.location}
-  price={`$${property.price.toLocaleString("es-CL")}`}
-  match={property.match}
-  gradient={property.gradient}
-  favorite={favorites.includes(property.id)}
-  onFavorite={() => toggleFavorite(property.id)}
-  typology={property.typology}
-  metro={property.metro}
-/>
+                  key={property.id}
+                  title={property.title}
+                  location={property.location}
+                  price={`$${property.price.toLocaleString("es-CL")}`}
+                  match={property.match}
+                  gradient={property.gradient}
+                  favorite={favorites.includes(property.id)}
+                  onFavorite={() => toggleFavorite(property.id)}
+                  typology={property.typology}
+                  metro={property.metro}
+                />
               ))}
             </div>
           )}
@@ -196,11 +344,11 @@ export default function Home() {
           )}
         </motion.div>
 
-        {favoriteProperties.length > 0 && (
+        {favoriteProperties.length > 0 && !isSearching && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-12 w-full max-w-5xl rounded-[32px] border border-red-500/20 bg-white/5 p-6 text-left backdrop-blur-xl"
+            className="mt-12 w-full max-w-6xl rounded-[32px] border border-red-500/20 bg-white/5 p-6 text-left backdrop-blur-xl"
           >
             <h2 className="text-2xl font-bold">
               Tus favoritos guardados
@@ -213,89 +361,18 @@ export default function Home() {
             <div className="mt-6 grid gap-6 md:grid-cols-3">
               {favoriteProperties.map((property) => (
                 <PropertyCard
-  key={property.id}
-  title={property.title}
-  location={property.location}
-  price={`$${property.price.toLocaleString("es-CL")}`}
-  match={property.match}
-  gradient={property.gradient}
-  favorite={favorites.includes(property.id)}
-  onFavorite={() => toggleFavorite(property.id)}
-  typology={property.typology}
-  metro={property.metro}
-/>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {!isFinished && (
-          <div className="mt-32 flex w-full flex-col items-center">
-            <ProgressBar progress={progress} />
-
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentQuestion}
-                initial={{ opacity: 0, x: 60 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -60 }}
-                transition={{ duration: 0.35 }}
-                className="mt-10"
-              >
-                <QuestionCard
-                  question={questions[currentQuestion].question}
-                  options={questions[currentQuestion].options}
-                  onSelect={(option) => {
-                    setAnswers([...answers, option]);
-
-                    setTimeout(() => {
-                      setCurrentQuestion(currentQuestion + 1);
-                    }, 200);
-                  }}
+                  key={property.id}
+                  title={property.title}
+                  location={property.location}
+                  price={`$${property.price.toLocaleString("es-CL")}`}
+                  match={property.match}
+                  gradient={property.gradient}
+                  favorite={favorites.includes(property.id)}
+                  onFavorite={() => toggleFavorite(property.id)}
+                  typology={property.typology}
+                  metro={property.metro}
                 />
-              </motion.div>
-            </AnimatePresence>
-
-            <div className="mt-10 flex flex-wrap justify-center gap-3 text-zinc-400">
-              {answers.map((answer, index) => (
-                <motion.p
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  key={index}
-                  className="rounded-xl bg-white/5 px-4 py-2"
-                >
-                  {answer}
-                </motion.p>
               ))}
-            </div>
-          </div>
-        )}
-
-        {isFinished && (
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-16 flex flex-col items-center"
-          >
-            <div className="rounded-[32px] border border-green-500/20 bg-white/5 p-8 text-center backdrop-blur-xl">
-              <div className="mb-4 inline-flex rounded-full bg-green-500/20 px-4 py-2 text-sm text-green-400">
-                Matching completado
-              </div>
-
-              <h2 className="text-3xl font-black">
-                Encontramos {matchedProperties.length} propiedades compatibles.
-              </h2>
-
-              <p className="mt-4 text-zinc-400">
-                Puedes ajustar la búsqueda o volver a responder el onboarding.
-              </p>
-
-              <button
-                onClick={resetOnboarding}
-                className="mt-6 rounded-2xl bg-white px-6 py-3 font-semibold text-black transition hover:scale-105"
-              >
-                Repetir búsqueda
-              </button>
             </div>
           </motion.div>
         )}
