@@ -91,3 +91,18 @@ export async function deleteProperty(id: number) {
 
   return true;
 }
+
+export async function getPropertyById(id: number): Promise<Property | null> {
+  const { data, error } = await supabase
+    .from("properties")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error loading property:", error);
+    return null;
+  }
+
+  return data as Property;
+}

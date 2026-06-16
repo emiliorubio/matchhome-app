@@ -2,12 +2,14 @@
 
 import { FormEvent, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Heart, MapPin, Train, X } from "lucide-react";
 
 import { createLead } from "@/src/services/leads";
 
 type PropertyCardProps = {
+  id: number;
   title: string;
   location: string;
   price: string;
@@ -20,6 +22,7 @@ type PropertyCardProps = {
 };
 
 export function PropertyCard({
+  id,
   title,
   location,
   price,
@@ -199,10 +202,16 @@ export function PropertyCard({
           />
         </button>
 
-        <div className={`h-48 rounded-2xl bg-gradient-to-br ${gradient}`} />
+        <Link href={`/propiedad/${id}`}>
+          <div className={`h-48 rounded-2xl bg-gradient-to-br ${gradient}`} />
+        </Link>
 
         <div className="mt-5">
-          <h3 className="text-xl font-bold leading-tight">{title}</h3>
+          <Link href={`/propiedad/${id}`}>
+            <h3 className="text-xl font-bold leading-tight transition hover:text-cyan-300">
+              {title}
+            </h3>
+          </Link>
 
           <p className="mt-2 text-sm font-medium text-zinc-300">
             {typology || "Tipología por confirmar"}
@@ -228,13 +237,22 @@ export function PropertyCard({
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowModal(true)}
-            className="mt-5 w-full rounded-2xl bg-gradient-to-r from-fuchsia-500 to-cyan-400 px-5 py-3 font-bold text-white transition hover:scale-[1.02]"
-          >
-            Quiero agendar visita
-          </button>
+          <div className="mt-5 grid gap-3">
+            <Link
+              href={`/propiedad/${id}`}
+              className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-center font-bold text-white transition hover:bg-white/10"
+            >
+              Ver detalle
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => setShowModal(true)}
+              className="w-full rounded-2xl bg-gradient-to-r from-fuchsia-500 to-cyan-400 px-5 py-3 font-bold text-white transition hover:scale-[1.02]"
+            >
+              Quiero agendar visita
+            </button>
+          </div>
         </div>
       </motion.div>
 

@@ -322,6 +322,7 @@ export default function Home() {
               {featuredProperties.map((property) => (
                 <PropertyCard
                   key={property.id}
+                  id={property.id}
                   title={property.title}
                   location={property.location}
                   price={`$${property.price.toLocaleString("es-CL")}`}
@@ -370,6 +371,7 @@ export default function Home() {
               {normalProperties.map((property) => (
                 <PropertyCard
                   key={property.id}
+                  id={property.id}
                   title={property.title}
                   location={property.location}
                   price={`$${property.price.toLocaleString("es-CL")}`}
@@ -409,6 +411,7 @@ export default function Home() {
               {favoriteProperties.map((property) => (
                 <PropertyCard
                   key={property.id}
+                  id={property.id}
                   title={property.title}
                   location={property.location}
                   price={`$${property.price.toLocaleString("es-CL")}`}
