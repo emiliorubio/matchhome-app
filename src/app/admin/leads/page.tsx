@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 import { AdminGuard } from "@/src/components/AdminGuard";
@@ -14,10 +14,19 @@ const leadStatuses = [
   "Rechazado",
 ];
 
+const statusFilters = [
+  "Todos",
+  "Nuevo",
+  "Contactado",
+  "Aprobado",
+  "Rechazado",
+];
+
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState("Todos");
 
   useEffect(() => {
     async function loadLeads() {
@@ -29,6 +38,16 @@ export default function LeadsPage() {
 
     loadLeads();
   }, []);
+
+  const filteredLeads = useMemo(() => {
+    if (statusFilter === "Todos") {
+      return leads;
+    }
+
+    return leads.filter(
+      (lead) => (lead.status || "Nuevo") === statusFilter
+    );
+  }, [leads, statusFilter]);
 
   async function handleStatusChange(id: number, status: string) {
     setUpdatingId(id);
@@ -101,37 +120,71 @@ export default function LeadsPage() {
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
               <p className="text-sm text-zinc-400">Nuevos</p>
               <p className="mt-3 text-4xl font-black">
-                {leads.filter((lead) => (lead.status || "Nuevo") === "Nuevo").length}
+                {
+                  leads.filter(
+                    (lead) => (lead.status || "Nuevo") === "Nuevo"
+                  ).length
+                }
               </p>
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
               <p className="text-sm text-zinc-400">Contactados</p>
               <p className="mt-3 text-4xl font-black">
-                {leads.filter((lead) => lead.status === "Contactado").length}
+                {
+                  leads.filter((lead) => lead.status === "Contactado")
+                    .length
+                }
               </p>
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
               <p className="text-sm text-zinc-400">Aprobados</p>
               <p className="mt-3 text-4xl font-black">
-                {leads.filter((lead) => lead.status === "Aprobado").length}
+                {
+                  leads.filter((lead) => lead.status === "Aprobado")
+                    .length
+                }
               </p>
             </div>
           </section>
 
           <section className="mt-10 rounded-[32px] border border-white/10 bg-white/5 p-6">
-            <h2 className="text-2xl font-bold">
-              Solicitudes
-            </h2>
+            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">
+                  Solicitudes
+                </h2>
+
+                <p className="mt-1 text-sm text-zinc-400">
+                  Mostrando {filteredLeads.length} de {leads.length} leads.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {statusFilters.map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setStatusFilter(status)}
+                    className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+                      statusFilter === status
+                        ? "bg-white text-black"
+                        : "border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10"
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {loading ? (
               <div className="py-16 text-center text-zinc-400">
                 Cargando leads...
               </div>
-            ) : leads.length === 0 ? (
+            ) : filteredLeads.length === 0 ? (
               <div className="py-16 text-center text-zinc-400">
-                Todavía no hay leads registrados.
+                No hay leads para este filtro.
               </div>
             ) : (
               <div className="mt-6 overflow-x-auto">
@@ -150,7 +203,7 @@ export default function LeadsPage() {
                   </thead>
 
                   <tbody>
-                    {leads.map((lead) => (
+                    {filteredLeads.map((lead) => (
                       <tr
                         key={lead.id}
                         className="rounded-2xl bg-black/40 text-sm"
@@ -164,7 +217,10 @@ export default function LeadsPage() {
                             value={lead.status || "Nuevo"}
                             disabled={updatingId === lead.id}
                             onChange={(event) =>
-                              handleStatusChange(lead.id, event.target.value)
+                              handleStatusChange(
+                                lead.id,
+                                event.target.value
+                              )
                             }
                             className="rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-white outline-none"
                           >
