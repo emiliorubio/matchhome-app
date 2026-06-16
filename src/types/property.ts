@@ -24,4 +24,6 @@ export type Property = {
   address: string | null;
 
   project: string | null;
+
+  featured: boolean | null;
 };

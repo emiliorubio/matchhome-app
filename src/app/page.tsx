@@ -108,6 +108,14 @@ export default function Home() {
     });
   }, [properties, answers, search, isSearching]);
 
+  const featuredProperties = matchedProperties.filter(
+    (property) => property.featured
+  );
+
+  const normalProperties = matchedProperties.filter(
+    (property) => !property.featured
+  );
+
   const favoriteProperties = properties.filter((property) =>
     favorites.includes(property.id)
   );
@@ -290,6 +298,45 @@ export default function Home() {
           </AnimatePresence>
         </div>
 
+        {featuredProperties.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-10 w-full max-w-6xl rounded-[32px] border border-yellow-400/30 bg-yellow-400/5 p-6 text-left shadow-2xl shadow-yellow-500/10 backdrop-blur-xl"
+          >
+            <div className="mb-6">
+              <p className="text-sm uppercase tracking-[0.25em] text-yellow-300">
+                Promociones
+              </p>
+
+              <h2 className="mt-2 text-3xl font-black">
+                🔥 Destacadas de la semana
+              </h2>
+
+              <p className="mt-1 text-sm text-zinc-400">
+                Propiedades priorizadas por campaña, promoción o disponibilidad.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {featuredProperties.map((property) => (
+                <PropertyCard
+                  key={property.id}
+                  title={property.title}
+                  location={property.location}
+                  price={`$${property.price.toLocaleString("es-CL")}`}
+                  match={property.match}
+                  gradient="from-yellow-400 to-orange-500"
+                  favorite={favorites.includes(property.id)}
+                  onFavorite={() => toggleFavorite(property.id)}
+                  typology={property.typology}
+                  metro={property.metro}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -305,7 +352,7 @@ export default function Home() {
               </h2>
 
               <p className="mt-1 text-sm text-zinc-400">
-                {matchedProperties.length} resultados disponibles
+                {normalProperties.length} resultados disponibles
               </p>
             </div>
 
@@ -320,7 +367,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-3">
-              {matchedProperties.map((property) => (
+              {normalProperties.map((property) => (
                 <PropertyCard
                   key={property.id}
                   title={property.title}
