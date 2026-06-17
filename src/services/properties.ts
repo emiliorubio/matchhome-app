@@ -8,16 +8,30 @@ export type NewProperty = {
   match: number;
   gradient: string;
   budget: string;
+
   pets: boolean;
   parking: boolean;
+
   typology: string;
   metro: string;
   address: string;
   project: string;
+
+  unit_number: string;
+
   featured: boolean;
+
   description: string;
+
   photos: string;
   cover_photo: string;
+
+  promotion: string;
+
+  guarantee_installments: boolean;
+
+  internal_notes: string;
+
   status: string;
 };
 
@@ -132,8 +146,7 @@ export async function uploadPropertyPhotos(files: File[]) {
     }
 
     const { data } = supabase.storage
-      .from("property-photos")
-      .getPublicUrl(filePath);
+      .from("property-photos").getPublicUrl(filePath);
 
     uploadedUrls.push(data.publicUrl);
   }

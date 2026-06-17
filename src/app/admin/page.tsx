@@ -30,16 +30,28 @@ const initialForm: NewProperty = {
   match: 90,
   gradient: "from-fuchsia-500 to-cyan-500",
   budget: "Hasta $300.000",
+
   pets: true,
   parking: false,
+
   typology: "",
   metro: "",
   address: "",
   project: "",
+
+  unit_number: "",
+
   featured: false,
+
+  promotion: "",
+  guarantee_installments: true,
+  internal_notes: "",
+
   description: "",
+
   cover_photo: "",
   photos: "",
+
   status: "Disponible",
 };
 
@@ -85,6 +97,7 @@ function normalizeExcelRow(row: Record<string, unknown>, index: number) {
   const property: NewProperty = {
     title: address,
     project,
+    unit_number: "",
     address,
     typology,
     metro,
@@ -96,6 +109,9 @@ function normalizeExcelRow(row: Record<string, unknown>, index: number) {
     parking: hasValue(parkingValue),
     pets: true,
     featured: false,
+    promotion: "",
+    guarantee_installments: true,
+    internal_notes: "",
     description: "",
     photos: "",
     cover_photo: "",
@@ -194,7 +210,11 @@ export default function AdminPage() {
       metro: property.metro ?? "",
       address: property.address ?? "",
       project: property.project ?? "",
+      unit_number: property.unit_number ?? "",
       featured: property.featured ?? false,
+      promotion: property.promotion ?? "",
+      guarantee_installments: property.guarantee_installments ?? true,
+      internal_notes: property.internal_notes ?? "",
       description: property.description ?? "",
       photos: property.photos ?? "",
       cover_photo: property.cover_photo ?? "",
@@ -457,7 +477,17 @@ export default function AdminPage() {
                 placeholder="Proyecto / Edificio"
                 className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
               />
-
+              <input
+                value={form.unit_number}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    unit_number: event.target.value,
+                  })
+                }
+                placeholder="Número de departamento (interno)"
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+              />
               <input
                 value={form.location}
                 onChange={(event) =>
@@ -491,6 +521,17 @@ export default function AdminPage() {
                   setForm({ ...form, metro: event.target.value })
                 }
                 placeholder="Metro cercano"
+                className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
+              />
+              <input
+                value={form.promotion}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    promotion: event.target.value,
+                  })
+                }
+                placeholder="Promoción (ej: 50% primer mes)"
                 className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500"
               />
 
@@ -590,7 +631,20 @@ export default function AdminPage() {
                 />
                 Propiedad destacada
               </label>
-
+              <label className="flex items-center gap-3 rounded-2xl border border-green-500/20 bg-green-500/10 px-5 py-4">
+                <input
+                  type="checkbox"
+                  checked={form.guarantee_installments}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      guarantee_installments:
+                        event.target.checked,
+                    })
+                  }
+                />
+                Garantía hasta en 6 cuotas
+              </label>
               <textarea
                 value={form.description}
                 onChange={(event) =>
@@ -600,7 +654,18 @@ export default function AdminPage() {
                 rows={4}
                 className="rounded-2xl border border-white/10 bg-black/40 px-5 py-4 outline-none transition focus:border-fuchsia-500 md:col-span-2"
               />
-
+              <textarea
+                value={form.internal_notes}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    internal_notes: event.target.value,
+                  })
+                }
+                placeholder="Notas internas (solo admin)"
+                rows={3}
+                className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 outline-none md:col-span-2"
+              />
               <textarea
                 value={form.photos}
                 onChange={(event) =>
@@ -648,8 +713,8 @@ export default function AdminPage() {
                             src={photo}
                             alt="Foto propiedad"
                             className={`h-24 w-full rounded-xl object-cover ${form.cover_photo === photo
-                                ? "ring-4 ring-cyan-400"
-                                : ""
+                              ? "ring-4 ring-cyan-400"
+                              : ""
                               }`}
                           />
 
