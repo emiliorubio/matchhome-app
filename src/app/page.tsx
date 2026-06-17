@@ -337,6 +337,7 @@ export default function Home() {
                     property.photos?.split(",")[0]?.trim() ||
                     null
                   }
+                  featured={property.featured ?? false}
                 />
               ))}
             </div>
@@ -391,6 +392,7 @@ export default function Home() {
                     property.photos?.split(",")[0]?.trim() ||
                     null
                   }
+                  featured={property.featured ?? false}
                 />
               ))}
             </div>
@@ -436,6 +438,7 @@ export default function Home() {
                     property.photos?.split(",")[0]?.trim() ||
                     null
                   }
+                  featured={property.featured ?? false}
                 />
               ))}
             </div>

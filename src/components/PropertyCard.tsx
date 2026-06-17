@@ -20,6 +20,7 @@ type PropertyCardProps = {
   typology?: string | null;
   metro?: string | null;
   coverPhoto?: string | null;
+  featured?: boolean;
 };
 
 export function PropertyCard({
@@ -34,6 +35,7 @@ export function PropertyCard({
   typology,
   metro,
   coverPhoto,
+  featured,
 }: PropertyCardProps) {
   const [showModal, setShowModal] = useState(false);
   const [savingLead, setSavingLead] = useState(false);
@@ -181,13 +183,18 @@ export function PropertyCard({
           className="absolute right-4 top-4 z-20 rounded-full bg-black/40 p-2 backdrop-blur-xl transition hover:scale-110"
         >
           <Heart
-            className={`h-5 w-5 transition ${
-              favorite ? "fill-red-500 text-red-500" : "text-white"
-            }`}
+            className={`h-5 w-5 transition ${favorite ? "fill-red-500 text-red-500" : "text-white"
+              }`}
           />
         </button>
 
         <Link href={`/propiedad/${id}`}>
+          {featured && (
+            <div className="absolute left-4 top-4 z-20 rounded-full bg-yellow-400 px-4 py-2 text-xs font-black text-black shadow-lg">
+              🔥 DESTACADA
+            </div>
+          )}
+
           {coverPhoto ? (
             <img
               src={coverPhoto}
@@ -195,7 +202,9 @@ export function PropertyCard({
               className="h-48 w-full rounded-2xl object-cover"
             />
           ) : (
-            <div className={`h-48 rounded-2xl bg-gradient-to-br ${gradient}`} />
+            <div
+              className={`h-48 rounded-2xl bg-gradient-to-br ${gradient}`}
+            />
           )}
         </Link>
 
