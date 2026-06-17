@@ -124,7 +124,7 @@ export default function PropertyDetailPage() {
                     <img
                       src={activePhoto}
                       alt={property.title}
-                      className="h-[280px] w-full rounded-[22px] object-cover md:h-[420px] md:rounded-[28px]"
+                      className="max-h-[70vh] w-full rounded-[22px] object-contain md:rounded-[28px]"
                     />
 
                     {orderedPhotos.length > 1 && (
