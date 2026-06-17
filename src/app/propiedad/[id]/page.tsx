@@ -107,7 +107,7 @@ export default function PropertyDetailPage() {
     <main className="min-h-screen bg-black text-white">
       <Navbar />
 
-      <section className="relative px-6 py-24">
+      <section className="relative px-4 py-20 md:px-6 md:py-24">
         <div className="mx-auto max-w-6xl">
           <Link
             href="/"
@@ -116,34 +116,34 @@ export default function PropertyDetailPage() {
             ← Volver a propiedades
           </Link>
 
-          <div className="mt-10 grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="mt-8 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
             <div>
-              <div className="rounded-[36px] border border-white/10 bg-white/5 p-5">
+              <div className="rounded-[28px] border border-white/10 bg-white/5 p-3 md:rounded-[36px] md:p-5">
                 {activePhoto ? (
                   <div className="relative">
                     <img
                       src={activePhoto}
                       alt={property.title}
-                      className="h-[420px] w-full rounded-[28px] object-cover"
+                      className="h-[280px] w-full rounded-[22px] object-cover md:h-[420px] md:rounded-[28px]"
                     />
 
                     {orderedPhotos.length > 1 && (
                       <>
                         <button
                           onClick={previousPhoto}
-                          className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/60 px-4 py-3 text-white backdrop-blur-xl transition hover:bg-black/80"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/70 px-3 py-2 text-white backdrop-blur-xl transition hover:bg-black/80 md:left-4 md:px-4 md:py-3"
                         >
                           ←
                         </button>
 
                         <button
                           onClick={nextPhoto}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/60 px-4 py-3 text-white backdrop-blur-xl transition hover:bg-black/80"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/70 px-3 py-2 text-white backdrop-blur-xl transition hover:bg-black/80 md:right-4 md:px-4 md:py-3"
                         >
                           →
                         </button>
 
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-sm text-white">
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-xs text-white md:text-sm">
                           {currentPhoto + 1} / {orderedPhotos.length}
                         </div>
                       </>
@@ -151,7 +151,7 @@ export default function PropertyDetailPage() {
                   </div>
                 ) : (
                   <div
-                    className={`flex h-[420px] w-full items-center justify-center rounded-[28px] bg-gradient-to-br ${property.gradient}`}
+                    className={`flex h-[280px] w-full items-center justify-center rounded-[22px] bg-gradient-to-br md:h-[420px] md:rounded-[28px] ${property.gradient}`}
                   >
                     <p className="text-xl font-bold text-white/80">
                       Fotos próximamente
@@ -161,21 +161,21 @@ export default function PropertyDetailPage() {
               </div>
 
               {orderedPhotos.length > 1 && (
-                <div className="mt-5 grid gap-4 grid-cols-3 md:grid-cols-5">
+                <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
                   {orderedPhotos.map((photo, index) => (
                     <button
                       key={photo}
                       onClick={() => setCurrentPhoto(index)}
-                      className={`overflow-hidden rounded-2xl border transition ${
+                      className={`h-20 w-24 shrink-0 overflow-hidden rounded-2xl border transition md:h-24 md:w-32 ${
                         currentPhoto === index
-                          ? "border-cyan-400"
+                          ? "border-cyan-400 opacity-100"
                           : "border-white/10 opacity-70 hover:opacity-100"
                       }`}
                     >
                       <img
                         src={photo}
                         alt={property.title}
-                        className="h-24 w-full object-cover"
+                        className="h-full w-full object-cover"
                       />
                     </button>
                   ))}
@@ -183,18 +183,18 @@ export default function PropertyDetailPage() {
               )}
             </div>
 
-            <aside className="rounded-[36px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+            <aside className="rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur-xl md:rounded-[36px] md:p-6">
               {property.featured && (
                 <div className="mb-5 inline-flex rounded-full bg-yellow-400/20 px-4 py-2 text-sm font-bold text-yellow-300">
                   🔥 Propiedad destacada
                 </div>
               )}
 
-              <h1 className="text-4xl font-black leading-tight">
+              <h1 className="text-3xl font-black leading-tight md:text-4xl">
                 {property.title}
               </h1>
 
-              <p className="mt-3 text-lg text-zinc-400">
+              <p className="mt-3 text-base text-zinc-400 md:text-lg">
                 {property.typology || "Tipología por confirmar"} ·{" "}
                 {property.location}
               </p>
@@ -205,10 +205,10 @@ export default function PropertyDetailPage() {
                 </p>
               )}
 
-              <div className="mt-8 rounded-3xl bg-black/40 p-5">
+              <div className="mt-6 rounded-3xl bg-black/40 p-5 md:mt-8">
                 <p className="text-sm text-zinc-400">Valor arriendo</p>
 
-                <p className="mt-2 text-4xl font-black">
+                <p className="mt-2 text-3xl font-black md:text-4xl">
                   ${property.price.toLocaleString("es-CL")}
                 </p>
               </div>
@@ -239,8 +239,8 @@ export default function PropertyDetailPage() {
             </aside>
           </div>
 
-          <section className="mt-10 rounded-[36px] border border-white/10 bg-white/5 p-8">
-            <h2 className="text-3xl font-black">
+          <section className="mt-8 rounded-[28px] border border-white/10 bg-white/5 p-6 md:mt-10 md:rounded-[36px] md:p-8">
+            <h2 className="text-2xl font-black md:text-3xl">
               Descripción
             </h2>
 
