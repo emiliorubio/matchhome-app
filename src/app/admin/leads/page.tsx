@@ -33,7 +33,6 @@ export default function LeadsPage() {
   useEffect(() => {
     async function loadLeads() {
       const data = await getLeads();
-
       setLeads(data);
       setLoading(false);
     }
@@ -43,14 +42,22 @@ export default function LeadsPage() {
 
   const propertyOptions = useMemo(() => {
     const uniqueProperties = Array.from(
-      new Set(
-        leads
-          .map((lead) => lead.property_title)
-          .filter(Boolean)
-      )
+      new Set(leads.map((lead) => lead.property_title).filter(Boolean))
     );
 
     return ["Todas", ...uniqueProperties];
+  }, [leads]);
+
+  const leadsByProperty = useMemo(() => {
+    return Array.from(
+      leads.reduce((map, lead) => {
+        const title = lead.property_title || "Sin propiedad";
+        map.set(title, (map.get(title) || 0) + 1);
+        return map;
+      }, new Map<string, number>())
+    )
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 9);
   }, [leads]);
 
   const filteredLeads = useMemo(() => {
@@ -96,8 +103,13 @@ export default function LeadsPage() {
 
   function getWhatsappUrl(phone: string) {
     const cleanPhone = phone.replace(/\D/g, "").replace(/^56/, "");
-
     return `https://wa.me/56${cleanPhone}`;
+  }
+
+  function clearFilters() {
+    setStatusFilter("Todos");
+    setPropertyFilter("Todas");
+    setSearch("");
   }
 
   return (
@@ -174,6 +186,69 @@ export default function LeadsPage() {
                 }
               </p>
             </div>
+          </section>
+
+          <section className="mt-10 rounded-[32px] border border-cyan-500/20 bg-white/5 p-6">
+            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">
+                  Leads por propiedad
+                </h2>
+
+                <p className="mt-1 text-sm text-zinc-400">
+                  Ideal para medir qué campañas o departamentos generan más consultas.
+                </p>
+              </div>
+
+              {(propertyFilter !== "Todas" || statusFilter !== "Todos" || search) && (
+                <button
+                  onClick={clearFilters}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold transition hover:bg-white/10"
+                >
+                  Limpiar filtros
+                </button>
+              )}
+            </div>
+
+            {leadsByProperty.length === 0 ? (
+              <div className="mt-6 rounded-3xl bg-black/40 p-8 text-center text-zinc-400">
+                Todavía no hay leads para analizar.
+              </div>
+            ) : (
+              <div className="mt-6 grid gap-4 md:grid-cols-3">
+                {leadsByProperty.map(([property, total]) => (
+                  <button
+                    key={property}
+                    onClick={() => {
+                      setPropertyFilter(property);
+                      setStatusFilter("Todos");
+                      setSearch("");
+                    }}
+                    className={`rounded-3xl border p-5 text-left transition ${
+                      propertyFilter === property
+                        ? "border-cyan-400 bg-cyan-500/10"
+                        : "border-white/10 bg-black/40 hover:border-cyan-400/40 hover:bg-cyan-500/10"
+                    }`}
+                  >
+                    <p className="text-sm text-zinc-400">
+                      Propiedad
+                    </p>
+
+                    <h3 className="mt-2 line-clamp-2 font-bold">
+                      {property}
+                    </h3>
+
+                    <p className="mt-4 text-3xl font-black text-cyan-300">
+                      {total}
+                    </p>
+
+                    <p className="mt-1 text-sm text-zinc-500">
+                      leads recibidos
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
           </section>
 
           <section className="mt-10 rounded-[32px] border border-white/10 bg-white/5 p-6">
