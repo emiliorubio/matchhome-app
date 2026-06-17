@@ -211,8 +211,8 @@ export default function Home() {
                 {isSearching
                   ? "Búsqueda activa: el match está minimizado."
                   : isFinished
-                  ? "Matching completado."
-                  : "Responde 3 preguntas rápidas."}
+                    ? "Matching completado."
+                    : "Responde 3 preguntas rápidas."}
               </p>
             </div>
 
@@ -332,7 +332,11 @@ export default function Home() {
                   onFavorite={() => toggleFavorite(property.id)}
                   typology={property.typology}
                   metro={property.metro}
-                  coverPhoto={property.cover_photo}
+                  coverPhoto={
+                    property.cover_photo ||
+                    property.photos?.split(",")[0]?.trim() ||
+                    null
+                  }
                 />
               ))}
             </div>
@@ -382,7 +386,11 @@ export default function Home() {
                   onFavorite={() => toggleFavorite(property.id)}
                   typology={property.typology}
                   metro={property.metro}
-                  coverPhoto={property.cover_photo}
+                  coverPhoto={
+                    property.cover_photo ||
+                    property.photos?.split(",")[0]?.trim() ||
+                    null
+                  }
                 />
               ))}
             </div>
@@ -423,7 +431,11 @@ export default function Home() {
                   onFavorite={() => toggleFavorite(property.id)}
                   typology={property.typology}
                   metro={property.metro}
-                  coverPhoto={property.cover_photo}
+                  coverPhoto={
+                    property.cover_photo ||
+                    property.photos?.split(",")[0]?.trim() ||
+                    null
+                  }
                 />
               ))}
             </div>
