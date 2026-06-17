@@ -108,7 +108,7 @@ export default function PropertyDetailPage() {
       <Navbar />
 
       <section className="relative px-4 py-20 md:px-6 md:py-24">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto w-full max-w-6xl">
           <Link
             href="/"
             className="inline-flex rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm text-zinc-300 transition hover:bg-white/10"
@@ -116,7 +116,7 @@ export default function PropertyDetailPage() {
             ← Volver a propiedades
           </Link>
 
-          <div className="mt-8 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="mt-8 flex w-full flex-col gap-8 lg:grid lg:grid-cols-[1.2fr_0.8fr]">  
             <div>
               <div className="rounded-[28px] border border-white/10 bg-white/5 p-3 md:rounded-[36px] md:p-5">
                 {activePhoto ? (
