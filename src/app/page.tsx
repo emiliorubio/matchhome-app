@@ -78,7 +78,11 @@ export default function Home() {
         !budgetAnswer || isSearching || property.budget === budgetAnswer;
 
       const matchesLocation =
-        !locationAnswer || isSearching || property.location === locationAnswer;
+        !locationAnswer ||
+        isSearching ||
+        normalizeText(property.location).includes(
+          normalizeText(locationAnswer)
+        );
 
       const matchesParking =
         !parkingAnswer ||
@@ -327,7 +331,7 @@ export default function Home() {
                   location={property.location}
                   price={`$${property.price.toLocaleString("es-CL")}`}
                   match={property.match}
-                  gradient="from-yellow-400 to-orange-500"
+                  gradient={property.gradient}
                   favorite={favorites.includes(property.id)}
                   onFavorite={() => toggleFavorite(property.id)}
                   typology={property.typology}
