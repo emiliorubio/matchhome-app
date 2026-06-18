@@ -175,40 +175,43 @@ export function PropertyCard({
       <motion.div
         whileHover={{ y: -8, scale: 1.02 }}
         transition={{ duration: 0.2 }}
-        className="relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-900 p-5"
+        className="relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-zinc-900 p-5"
       >
         <button
           type="button"
           onClick={onFavorite}
-          className="absolute right-4 top-4 z-20 rounded-full bg-black/40 p-2 backdrop-blur-xl transition hover:scale-110"
+          className="absolute right-4 top-4 z-30 rounded-full bg-black/40 p-2 backdrop-blur-xl transition hover:scale-110"
         >
           <Heart
-            className={`h-5 w-5 transition ${favorite ? "fill-red-500 text-red-500" : "text-white"
-              }`}
+            className={`h-5 w-5 transition ${
+              favorite ? "fill-red-500 text-red-500" : "text-white"
+            }`}
           />
         </button>
 
-        <Link href={`/propiedad/${id}`}>
+        <Link href={`/propiedad/${id}`} className="relative block">
           {featured && (
             <div className="absolute left-4 top-4 z-20 rounded-full bg-yellow-400 px-4 py-2 text-xs font-black text-black shadow-lg">
               🔥 DESTACADA
             </div>
           )}
 
-          {coverPhoto ? (
-            <img
-              src={coverPhoto}
-              alt={title}
-              className="h-48 w-full rounded-2xl object-cover"
-            />
-          ) : (
-            <div
-              className={`h-48 rounded-2xl bg-gradient-to-br ${gradient}`}
-            />
-          )}
+          <div className="h-48 w-full overflow-hidden rounded-2xl bg-zinc-800">
+            {coverPhoto ? (
+              <img
+                src={coverPhoto}
+                alt={title}
+                className="h-full w-full object-contain bg-black"
+              />
+            ) : (
+              <div
+                className={`h-full w-full bg-gradient-to-br ${gradient}`}
+              />
+            )}
+          </div>
         </Link>
 
-        <div className="mt-5">
+        <div className="mt-5 flex flex-1 flex-col">
           <Link href={`/propiedad/${id}`}>
             <h3 className="text-xl font-bold leading-tight transition hover:text-cyan-300">
               {title}
@@ -239,7 +242,7 @@ export function PropertyCard({
             </span>
           </div>
 
-          <div className="mt-5 grid gap-3">
+          <div className="mt-auto grid gap-3 pt-5">
             <Link
               href={`/propiedad/${id}`}
               className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-center font-bold text-white transition hover:bg-white/10"

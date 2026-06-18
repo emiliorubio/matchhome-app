@@ -69,16 +69,16 @@ export default function PropertyDetailPage() {
 
   const photos = property.photos
     ? property.photos
-        .split(",")
-        .map((photo) => photo.trim())
-        .filter(Boolean)
+      .split(",")
+      .map((photo) => photo.trim())
+      .filter(Boolean)
     : [];
 
   const orderedPhotos = property.cover_photo
     ? [
-        property.cover_photo,
-        ...photos.filter((photo) => photo !== property.cover_photo),
-      ]
+      property.cover_photo,
+      ...photos.filter((photo) => photo !== property.cover_photo),
+    ]
     : photos;
 
   const activePhoto = orderedPhotos[currentPhoto];
@@ -116,15 +116,15 @@ export default function PropertyDetailPage() {
             ← Volver a propiedades
           </Link>
 
-          <div className="mt-8 flex w-full flex-col gap-8 lg:grid lg:grid-cols-[1.2fr_0.8fr]">  
+          <div className="mt-8 flex w-full flex-col gap-8 lg:grid lg:grid-cols-[1.2fr_0.8fr]">
             <div>
               <div className="rounded-[28px] border border-white/10 bg-white/5 p-3 md:rounded-[36px] md:p-5">
                 {activePhoto ? (
-                  <div className="relative">
+                  <div className="relative flex h-[300px] w-full items-center justify-center overflow-hidden rounded-[22px] bg-black md:h-[620px] md:rounded-[28px]">
                     <img
                       src={activePhoto}
                       alt={property.title}
-                      className="max-h-[70vh] w-full rounded-[22px] object-contain md:rounded-[28px]"
+                      className="h-full w-full object-cover object-center"
                     />
 
                     {orderedPhotos.length > 1 && (
@@ -166,11 +166,10 @@ export default function PropertyDetailPage() {
                     <button
                       key={photo}
                       onClick={() => setCurrentPhoto(index)}
-                      className={`h-20 w-24 shrink-0 overflow-hidden rounded-2xl border transition md:h-24 md:w-32 ${
-                        currentPhoto === index
+                      className={`h-20 w-24 shrink-0 overflow-hidden rounded-2xl border transition md:h-24 md:w-32 ${currentPhoto === index
                           ? "border-cyan-400 opacity-100"
                           : "border-white/10 opacity-70 hover:opacity-100"
-                      }`}
+                        }`}
                     >
                       <img
                         src={photo}
